@@ -47,6 +47,7 @@ metadata:
     app.kubernetes.io/name: argocd-rbac-operator
     app.kubernetes.io/managed-by: kustomize
   name: test-role
+  namespace: test-ns
 spec:
   rules:
   - resource: "applications"
@@ -64,6 +65,7 @@ metadata:
     app.kubernetes.io/name: argocd-rbac-operator
     app.kubernetes.io/managed-by: kustomize
   name: test-role-binding
+  namespace: test-ns
 spec:
   subjects:
   - kind: "sso"
@@ -94,7 +96,7 @@ apiVersion: v1
 data:
   policy.csv: ""
   policy.default: role:readonly
-  policy.test-role.csv: |
+  policy.test-ns.test-role.csv: |
     p, role:test-role, applications, get, */*, allow
     p, role:test-role, applications, create, */*, allow
     p, role:test-role, applications, update, */*, allow
