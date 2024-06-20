@@ -1,0 +1,23 @@
+# permissions for end users to view roles.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: argocd-rbac-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: role-viewer-role
+rules:
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdroles
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdroles/status
+  verbs:
+  - get

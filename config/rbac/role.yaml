@@ -1,0 +1,69 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdrolebindings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdrolebindings/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdrolebindings/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdroles
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdroles/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdroles/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: manager-role
+  namespace: argocd
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - argocd-rbac-cm
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
