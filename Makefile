@@ -1,7 +1,24 @@
+# VERSION defines the project version for the bundle.
+# Update this value when you upgrade the version of your project.
+VERSION ?= 0.1.0
+
+# Try to detect Docker or Podman
+CONTAINER_TOOL := $(shell command -v docker 2> /dev/null)
+
+# If neither Docker nor Podman is found, print an error message and exit
+ifeq ($(CONTAINER_TOOL),)
+$(warning "No container runtime (Docker or Podman) found in PATH. Please install one of them.")
+endif
+
+# IMAGE_TAG_BASE defines the docker.io namespace and part of the image name for remote images.
+IMAGE_TAG_BASE ?= quay.io/argoprojlabs/argocd-rbac-operator
+
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= $(IMAGE_TAG_BASE):v$(VERSION)
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.30.0
+
+LD_FLAGS = "-X github.com/argoproj-labs/argocd-rbac-operator/version.Version=$(VERSION)"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -9,12 +26,6 @@ GOBIN=$(shell go env GOPATH)/bin
 else
 GOBIN=$(shell go env GOBIN)
 endif
-
-# CONTAINER_TOOL defines the container tool to be used for building images.
-# Be aware that the target commands are only tested with Docker which is
-# scaffolded by default. However, you might want to replace it to use other
-# tools. (i.e. podman)
-CONTAINER_TOOL ?= docker
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
@@ -80,18 +91,18 @@ lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 
 .PHONY: build
 build: manifests generate fmt vet ## Build manager binary.
-	go build -o bin/manager cmd/main.go
+	go build -ldflags=$(LD_FLAGS) -o bin/manager cmd/main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./cmd/main.go
+	go run -ldflags=$(LD_FLAGS) ./cmd/main.go
 
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) build -t ${IMG} .
+	$(CONTAINER_TOOL) build --build-arg LD_FLAGS=$(LD_FLAGS) -t ${IMG} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
