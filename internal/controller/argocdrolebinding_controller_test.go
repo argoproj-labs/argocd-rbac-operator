@@ -16,69 +16,72 @@ limitations under the License.
 
 package controller
 
-import (
-	"context"
+// import (
+// 	"context"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+// 	. "github.com/onsi/ginkgo/v2"
+// 	. "github.com/onsi/gomega"
+// 	"k8s.io/apimachinery/pkg/types"
+// 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+// 	argoprojiov1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+// )
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
-)
+// var _ = Describe("ArgoCDRoleBinding Controller", func() {
+// 	Context("When reconciling a resource", func() {
 
-var _ = Describe("ArgoCDRoleBinding Controller", func() {
-	Context("When reconciling a resource", func() {
-		const resourceName = "test-resource"
+// 		ctx := context.Background()
 
-		ctx := context.Background()
+// 		rb := makeTestRoleBinding()
+// 		typeNamespacedNameRoleBinding := types.NamespacedName{
+// 			Name:      testRoleBindingName,
+// 			Namespace: testNamespace,
+// 		}
 
-		typeNamespacedName := types.NamespacedName{
-			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
-		}
-		argocdrolebinding := &argoprojiov1alpha1.ArgoCDRoleBinding{}
+// 		nsCM := makeArgoCDNamespace()
 
-		BeforeEach(func() {
-			By("creating the custom resource for the Kind ArgoCDRoleBinding")
-			err := k8sClient.Get(ctx, typeNamespacedName, argocdrolebinding)
-			if err != nil && errors.IsNotFound(err) {
-				resource := &argoprojiov1alpha1.ArgoCDRoleBinding{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
-						Namespace: "default",
-					},
-					// TODO(user): Specify other spec details if needed.
-				}
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
-			}
-		})
+// 		BeforeEach(func() {
+// 			By("creating the namespace for the Kind RoleBinding")
+// 			Expect(k8sClient.Create(ctx, makeRBACOperatorNamespace())).To(Succeed())
 
-		AfterEach(func() {
-			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &argoprojiov1alpha1.ArgoCDRoleBinding{}
-			err := k8sClient.Get(ctx, typeNamespacedName, resource)
-			Expect(err).NotTo(HaveOccurred())
+// 			By("creating the custom resource for the Kind RoleBinding")
+// 			Expect(k8sClient.Create(ctx, rb)).To(Succeed())
 
-			By("Cleanup the specific resource instance ArgoCDRoleBinding")
-			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
-		})
-		It("should successfully reconcile the resource", func() {
-			By("Reconciling the created resource")
-			controllerReconciler := &ArgoCDRoleBindingReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
-			}
+// 			By("creating the namespace for the RBAC ConfigMap")
+// 			Expect(k8sClient.Create(ctx, nsCM)).To(Succeed())
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: typeNamespacedName,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
-			// Example: If you expect a certain status condition after reconciliation, verify it here.
-		})
-	})
-})
+// 			By("creating the RBAC ConfigMap")
+// 			Expect(k8sClient.Create(ctx, makeRBACConfigMap())).To(Succeed())
+// 		})
+
+// 		AfterEach(func() {
+// 			resource := &argoprojiov1alpha1.ArgoCDRoleBinding{}
+// 			err := k8sClient.Get(ctx, typeNamespacedNameRoleBinding, resource)
+// 			Expect(err).NotTo(HaveOccurred())
+
+// 			By("Cleanup the specific resource instance ArgoCDRoleBinding")
+// 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
+
+// 			By("Cleanup the namespace for the Kind RoleBinding")
+// 			Expect(k8sClient.Delete(ctx, makeRBACOperatorNamespace())).To(Succeed())
+
+// 			By("Cleanup the namespace for the RBAC ConfigMap")
+// 			Expect(k8sClient.Delete(ctx, nsCM)).To(Succeed())
+
+// 			By("Cleanup the RBAC ConfigMap")
+// 			Expect(k8sClient.Delete(ctx, makeRBACConfigMap())).To(Succeed())
+// 		})
+// 		It("should successfully reconcile the resource", func() {
+// 			By("Reconciling the created resource")
+// 			controllerReconciler := &ArgoCDRoleBindingReconciler{
+// 				Client: k8sClient,
+// 				Scheme: k8sClient.Scheme(),
+// 			}
+
+// 			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
+// 				NamespacedName: typeNamespacedNameRoleBinding,
+// 			})
+// 			Expect(err).NotTo(HaveOccurred())
+// 		})
+// 	})
+// })

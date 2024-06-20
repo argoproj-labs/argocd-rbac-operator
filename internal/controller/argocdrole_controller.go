@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
 )
 
 // blank assignment to verify that RoleReconciler implements reconcile.Reconciler
@@ -42,10 +42,10 @@ type ArgoCDRoleReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=argoproj.io,resources=argocdroles,verbs=get;list;watch;
-// +kubebuilder:rbac:groups=argoproj.io,resources=argocdroles/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=argoproj.io,resources=argocdroles/finalizers,verbs=update
-// +kubebuilder:rbac:groups=argoproj.io,resources=argocdrolebindings,verbs=get;list
+// +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdroles,verbs=get;list;watch;
+// +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdroles/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdroles/finalizers,verbs=update
+// +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdrolebindings,verbs=get;list
 // +kubebuilder:rbac:groups=core,resources=configmaps,resourceNames=argocd-rbac-cm,namespace=argocd,verbs=get;list;watch;update;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -62,13 +62,13 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	r.Log.Info("Reconciling ArgoCDRole %s", req.Name)
 
-	var role argoprojiov1alpha1.ArgoCDRole
+	var role rbacoperatorv1alpha1.ArgoCDRole
 	if err := r.Get(ctx, req.NamespacedName, &role); err != nil {
 		if errors.IsNotFound(err) {
 			r.Log.Info("ArgoCDRole %s not found.", req.Name)
 			return ctrl.Result{}, nil
 		}
-		role.SetConditions(argoprojiov1alpha1.ReconcileError(err))
+		role.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 		if err := r.Client.Status().Update(ctx, &role); err != nil {
 			r.Log.Error(err, "Failed to update ArgoCDRole %s status", req.Name)
 		}
@@ -77,7 +77,7 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	if role.IsBeingDeleted() {
 		if err := r.handleFinalizer(ctx, &role); err != nil {
-			role.SetConditions(argoprojiov1alpha1.Deleting().WithMessage(err.Error()))
+			role.SetConditions(rbacoperatorv1alpha1.Deleting().WithMessage(err.Error()))
 			if err := r.Client.Status().Update(ctx, &role); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDRole %s status", req.Name)
 			}
@@ -86,9 +86,9 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, nil
 	}
 
-	if !role.HasFinalizer(argoprojiov1alpha1.ArgoCDRoleFinalizerName) {
+	if !role.HasFinalizer(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName) {
 		if err := r.addFinalizer(ctx, &role); err != nil {
-			role.SetConditions(argoprojiov1alpha1.Deleting().WithMessage(err.Error()))
+			role.SetConditions(rbacoperatorv1alpha1.Deleting().WithMessage(err.Error()))
 			if err := r.Client.Status().Update(ctx, &role); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDRole %s status", req.Name)
 			}
@@ -101,7 +101,7 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	r.Log.Info("Checking if ConfigMap exists")
 	if !IsObjectFound(r.Client, cm.Namespace, cm.Name, cm) {
-		role.SetConditions(argoprojiov1alpha1.Pending(fmt.Errorf("ConfigMap %s not found", cm.Name)))
+		role.SetConditions(rbacoperatorv1alpha1.Pending(fmt.Errorf("ConfigMap %s not found", cm.Name)))
 		if err := r.Client.Status().Update(ctx, &role); err != nil {
 			r.Log.Error(err, "Failed to update ArgoCDRole %s status", req.Name)
 		}
@@ -109,7 +109,7 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	if role.HasArgoCDRoleBindingRef() {
-		var rb argoprojiov1alpha1.ArgoCDRoleBinding
+		var rb rbacoperatorv1alpha1.ArgoCDRoleBinding
 
 		typeNamespacedNameRoleBinding := types.NamespacedName{
 			Name:      role.Status.ArgoCDRoleBindingRef,
@@ -118,7 +118,7 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		if err := r.Get(ctx, typeNamespacedNameRoleBinding, &rb); err != nil {
 			if errors.IsNotFound(err) {
 				r.Log.Info("ArgoCDRoleBinding %s not found.", role.Status.ArgoCDRoleBindingRef)
-				role.SetConditions(argoprojiov1alpha1.ReconcileError(err))
+				role.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 				if err := r.Client.Status().Update(ctx, &role); err != nil {
 					r.Log.Error(err, "Failed to update ArgoCDRole %s status", req.Name)
 				}
@@ -128,14 +128,14 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 		r.Log.Info("Reconciling RBAC ConfigMap")
 		if err := r.reconcileRBACConfigMapWithRoleBinding(cm, &role, &rb); err != nil {
-			role.SetConditions(argoprojiov1alpha1.ReconcileError(err))
+			role.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 			if err := r.Client.Status().Update(ctx, &role); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDRole %s status", req.Name)
 			}
 			return ctrl.Result{Requeue: true, RequeueAfter: time.Second}, err
 		}
 
-		role.SetConditions(argoprojiov1alpha1.ReconcileSuccess().WithObservedGeneration(role.GetGeneration()))
+		role.SetConditions(rbacoperatorv1alpha1.ReconcileSuccess().WithObservedGeneration(role.GetGeneration()))
 		if err := r.Client.Status().Update(ctx, &role); err != nil {
 			r.Log.Error(err, "Failed to update ArgoCDRole %s status", req.Name)
 		}
@@ -144,14 +144,14 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	r.Log.Info("Reconciling RBAC ConfigMap")
 	if err := r.reconcileRBACConfigMap(cm, &role); err != nil {
-		role.SetConditions(argoprojiov1alpha1.ReconcileError(err))
+		role.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 		if err := r.Client.Status().Update(ctx, &role); err != nil {
 			r.Log.Error(err, "Failed to update ArgoCDRole %s status", req.Name)
 		}
 		return ctrl.Result{Requeue: true, RequeueAfter: time.Second}, err
 	}
 
-	role.SetConditions(argoprojiov1alpha1.ReconcileSuccess().WithObservedGeneration(role.GetGeneration()))
+	role.SetConditions(rbacoperatorv1alpha1.ReconcileSuccess().WithObservedGeneration(role.GetGeneration()))
 	if err := r.Client.Status().Update(ctx, &role); err != nil {
 		r.Log.Error(err, "Failed to update ArgoCDRole %s status", req.Name)
 	}
@@ -161,6 +161,6 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ArgoCDRoleReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&argoprojiov1alpha1.ArgoCDRole{}).
+		For(&rbacoperatorv1alpha1.ArgoCDRole{}).
 		Complete(r)
 }

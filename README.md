@@ -40,7 +40,7 @@ kubectl get pods -n argocd-rbac-operator-system
 The following example shows a manifest to create a new ArgoCDRole `test-role`:
 
 ```yaml
-apiVersion: argoproj.io/v1alpha1
+apiVersion: rbac-operator.argoproj-labs.io/v1alpha1
 kind: ArgoCDRole
 metadata:
   labels:
@@ -58,7 +58,7 @@ spec:
 And a ArgoCDRoleBinding `test-role-binding` to bind the specified users and a role to the new ArgoCDRole:
 
 ```yaml
-apiVersion: argoproj.io/v1alpha1
+apiVersion: rbac-operator.argoproj-labs.io/v1alpha1
 kind: ArgoCDRoleBinding
 metadata:
   labels:
@@ -118,10 +118,21 @@ metadata:
 
 To delete a Role you can use `kubectl`
 ```
-kubectl delete role.argoproj.io/org-admin
+kubectl delete argocdrole.rbac-operator.argoproj-labs.io/test-role
+kubectl delete argocdrolebinding.rbac-operator.argoproj-labs.io/test-role-binding
 ```
 After the Resource is deleted, the policy string will be also deleted from the RBAC-CM.
 
 ### Change the Scope, Default Role or Policy.CSV
 
 To change the scope, default role or policy.csv you have to make changes in the `internal/controller/common/defaults.go` file.
+
+### Deployment types
+
+As for now only single Argo CD deployment type is supported. The default Argo CD namespace is defined as `argocd`, to change that you have to make a change in `internal/controller/common/values.go`.
+
+## Roadmap
+
+- extend the operator with functionality to manage Argo CD AppProject RBAC
+- achieve test coverage of >= 80%
+- allow management for multi-instances set-up of Argo CD

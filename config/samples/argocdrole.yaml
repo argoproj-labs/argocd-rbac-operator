@@ -1,4 +1,4 @@
-apiVersion: argoproj.io/v1alpha1
+apiVersion: rbac-operator.argoproj-labs.io/v1alpha1
 kind: ArgoCDRole
 metadata:
   labels:

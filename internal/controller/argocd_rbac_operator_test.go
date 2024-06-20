@@ -18,64 +18,64 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	argoprojiov1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
 )
 
 var _ = Describe("ArgoCDRole Controller", func() {
 	Context("When reconciling a resource", func() {
-		const resourceName = "test-role"
 
 		ctx := context.Background()
 
+		role := makeTestRole()
 		typeNamespacedNameRole := types.NamespacedName{
-			Name:      resourceName,
-			Namespace: "default",
+			Name:      testRoleName,
+			Namespace: testNamespace,
 		}
-		role := &argoprojiov1alpha1.ArgoCDRole{}
 
-		ns := &corev1.Namespace{}
-		typeNamespacedNameNs := types.NamespacedName{
-			Name: "argocd",
-		}
+		nsCM := makeArgoCDNamespace()
+		/* 		typeNamespacedNameNsCM := types.NamespacedName{
+			Name: testRBACCMNamespace,
+		} */
 
 		BeforeEach(func() {
-			By("creating the custom resource for the Kind Role")
-			err := k8sClient.Get(ctx, typeNamespacedNameRole, role)
-			if err != nil && errors.IsNotFound(err) {
-				resource := makeTestRole()
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
-			}
 			By("creating the namespace for the RBAC ConfigMap")
-			err = k8sClient.Get(ctx, typeNamespacedNameNs, ns)
-			if err != nil && errors.IsNotFound(err) {
-				resource := makeArgoCDNamespace()
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
-			}
+			Expect(k8sClient.Create(ctx, nsCM)).Should(Succeed())
+
+			By("creating the RBAC ConfigMap")
+			Expect(k8sClient.Create(ctx, makeRBACConfigMap())).Should(Succeed())
+
+			By("creating the custom resource for the Kind Role")
+			Expect(k8sClient.Create(ctx, role)).Should(Succeed())
 		})
 
 		AfterEach(func() {
-			resource := &argoprojiov1alpha1.ArgoCDRole{}
-			err := k8sClient.Get(ctx, typeNamespacedNameRole, resource)
-			Expect(err).NotTo(HaveOccurred())
-
 			By("Cleanup the specific resource instance Role")
-			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
+			Expect(k8sClient.Delete(ctx, makeTestRole())).Should(Succeed())
+
+			By("Ensuring the Role is deleted")
+			Expect(k8sClient.Get(ctx, typeNamespacedNameRole, makeTestRole())).ShouldNot(Succeed())
+			cm := makeRBACConfigMap()
+			Expect(k8sClient.Get(ctx, types.NamespacedName{Namespace: cm.Namespace, Name: cm.Name}, cm)).Should(Succeed())
+			Expect(cm.Data).ShouldNot(HaveKey(fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)))
+
+			By("Cleanup the RBAC ConfigMap")
+			Expect(k8sClient.Delete(ctx, makeRBACConfigMap())).Should(Succeed())
+
+			By("Cleanup the namespace for the RBAC ConfigMap")
+			Expect(k8sClient.Delete(ctx, nsCM)).Should(Succeed())
 		})
+
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
 			controllerReconciler := &ArgoCDRoleReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}
-
 			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
 				NamespacedName: typeNamespacedNameRole,
 			})

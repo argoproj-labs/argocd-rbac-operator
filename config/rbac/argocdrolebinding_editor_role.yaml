@@ -8,7 +8,7 @@ metadata:
   name: argocdrolebinding-editor-role
 rules:
 - apiGroups:
-  - argoproj.io
+  - rbac-operator.argoproj-labs.io
   resources:
   - argocdrolebindings
   verbs:
@@ -20,7 +20,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - argoproj.io
+  - rbac-operator.argoproj-labs.io
   resources:
   - argocdrolebindings/status
   verbs:

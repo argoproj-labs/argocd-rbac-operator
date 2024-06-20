@@ -8,7 +8,7 @@ metadata:
   name: role-editor-role
 rules:
 - apiGroups:
-  - argoproj.io
+  - rbac-operator.argoproj-labs.io
   resources:
   - argocdroles
   verbs:
@@ -20,7 +20,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - argoproj.io
+  - rbac-operator.argoproj-labs.io
   resources:
   - argocdroles/status
   verbs:

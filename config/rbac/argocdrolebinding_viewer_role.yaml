@@ -8,7 +8,7 @@ metadata:
   name: argocdrolebinding-viewer-role
 rules:
 - apiGroups:
-  - argoproj.io
+  - rbac-operator.argoproj-labs.io
   resources:
   - argocdrolebindings
   verbs:
@@ -16,7 +16,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - argoproj.io
+  - rbac-operator.argoproj-labs.io
   resources:
   - argocdrolebindings/status
   verbs:

@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.15.0
-  name: argocdroles.argoproj.io
+  name: argocdrolebindings.rbac-operator.argoproj-labs.io
 spec:
-  group: argoproj.io
+  group: rbac-operator.argoproj-labs.io
   names:
-    kind: ArgoCDRole
-    listKind: ArgoCDRoleList
-    plural: argocdroles
-    singular: argocdrole
+    kind: ArgoCDRoleBinding
+    listKind: ArgoCDRoleBindingList
+    plural: argocdrolebindings
+    singular: argocdrolebinding
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ArgoCDRole is the Schema for the roles API
+        description: ArgoCDRoleBinding is the Schema for the argocdrolebindings API
         properties:
           apiVersion:
             description: |-
@@ -37,47 +37,41 @@ spec:
           metadata:
             type: object
           spec:
-            description: ArgoCDRoleSpec defines the desired state of Role
+            description: ArgoCDRoleBindingSpec defines the desired state of ArgoCDRoleBinding
             properties:
-              rules:
+              argocdRoleRef:
+                properties:
+                  name:
+                    description: Name of the ArgoCDRole. Should not start with "role:"
+                    type: string
+                required:
+                - name
+                type: object
+              subjects:
                 items:
                   properties:
-                    objects:
-                      items:
-                        type: string
-                      type: array
-                    resource:
+                    kind:
                       enum:
-                      - clusters
-                      - projects
-                      - applications
-                      - applicationsets
-                      - repositories
-                      - certificates
-                      - accounts
-                      - gpgkeys
-                      - logs
-                      - exec
-                      - extensions
+                      - sso
+                      - local
+                      - role
                       type: string
-                    verbs:
-                      items:
-                        type: string
-                      type: array
+                    name:
+                      description: Name of the subject. If Kind is "role", it shouldn't
+                        start with "role:"
+                      type: string
                   required:
-                  - objects
-                  - resource
-                  - verbs
+                  - kind
+                  - name
                   type: object
                 type: array
             required:
-            - rules
+            - argocdRoleRef
+            - subjects
             type: object
           status:
-            description: ArgoCDRoleStatus defines the observed state of Role
+            description: ArgoCDRoleBindingStatus defines the observed state of ArgoCDRoleBinding
             properties:
-              argocdRoleBindingRef:
-                type: string
               conditions:
                 items:
                   description: A Condition that may apply to a resource.

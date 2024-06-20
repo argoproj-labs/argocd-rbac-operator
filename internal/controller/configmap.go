@@ -26,7 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
 	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 )
 
@@ -35,7 +35,7 @@ func getDefaultRBACPolicy() string {
 	return common.ArgoCDDefaultRBACPolicy
 }
 
-func getRBACPolicyCSV(role *argoprojiov1alpha1.ArgoCDRole, rb *argoprojiov1alpha1.ArgoCDRoleBinding) string {
+func getRBACPolicyCSV(role *rbacoperatorv1alpha1.ArgoCDRole, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding) string {
 	policy := ""
 	roleName := fmt.Sprintf("role:%s", role.ObjectMeta.Name)
 
@@ -46,7 +46,7 @@ func getRBACPolicyCSV(role *argoprojiov1alpha1.ArgoCDRole, rb *argoprojiov1alpha
 }
 
 // buildPolicyStringRules will build the policy string for Rules field of the given role.
-func buildPolicyStringRules(role *argoprojiov1alpha1.ArgoCDRole, roleName string) string {
+func buildPolicyStringRules(role *rbacoperatorv1alpha1.ArgoCDRole, roleName string) string {
 	policy := ""
 	for _, rule := range role.Spec.Rules {
 		resource := rule.Resource
@@ -60,7 +60,7 @@ func buildPolicyStringRules(role *argoprojiov1alpha1.ArgoCDRole, roleName string
 }
 
 // buildPolicyStringSubjects will build the policy string for Subjects field of the given role.
-func buildPolicyStringSubjects(rb *argoprojiov1alpha1.ArgoCDRoleBinding, role *argoprojiov1alpha1.ArgoCDRole) string {
+func buildPolicyStringSubjects(rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role *rbacoperatorv1alpha1.ArgoCDRole) string {
 	policy := ""
 	roleName := fmt.Sprintf("role:%s", role.ObjectMeta.Name)
 	for _, subject := range rb.Spec.Subjects {
@@ -88,7 +88,7 @@ func newConfigMap() *corev1.ConfigMap {
 }
 
 // reconcileRBACConfigMap will ensure that the ArgoCD RBAC ConfigMap is up-to-date.
-func (r *ArgoCDRoleReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMap, role *argoprojiov1alpha1.ArgoCDRole) error {
+func (r *ArgoCDRoleReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMap, role *rbacoperatorv1alpha1.ArgoCDRole) error {
 	changed := false
 	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
 	roleName := fmt.Sprintf("role:%s", role.Name)
@@ -111,7 +111,7 @@ func (r *ArgoCDRoleReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMap, role
 }
 
 // reconcileRBACConfigMapWithRoleBinding will ensure that the ArgoCD RBAC ConfigMap is up-to-date.
-func (r *ArgoCDRoleReconciler) reconcileRBACConfigMapWithRoleBinding(cm *corev1.ConfigMap, role *argoprojiov1alpha1.ArgoCDRole, rb *argoprojiov1alpha1.ArgoCDRoleBinding) error {
+func (r *ArgoCDRoleReconciler) reconcileRBACConfigMapWithRoleBinding(cm *corev1.ConfigMap, role *rbacoperatorv1alpha1.ArgoCDRole, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding) error {
 	changed := false
 	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
 
@@ -133,7 +133,7 @@ func (r *ArgoCDRoleReconciler) reconcileRBACConfigMapWithRoleBinding(cm *corev1.
 }
 
 // reconcileRBACConfigMap will ensure that the ArgoCD RBAC ConfigMap is up-to-date.
-func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMap, rb *argoprojiov1alpha1.ArgoCDRoleBinding, role *argoprojiov1alpha1.ArgoCDRole) error {
+func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMap, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role *rbacoperatorv1alpha1.ArgoCDRole) error {
 	changed := false
 	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
 
@@ -155,7 +155,7 @@ func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMa
 }
 
 // reconcileRBACConfigMap will ensure that the ArgoCD RBAC ConfigMap is up-to-date.
-func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMapForBuiltInRole(cm *corev1.ConfigMap, rb *argoprojiov1alpha1.ArgoCDRoleBinding, role *argoprojiov1alpha1.ArgoCDRole) error {
+func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMapForBuiltInRole(cm *corev1.ConfigMap, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role *rbacoperatorv1alpha1.ArgoCDRole) error {
 	changed := false
 	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
 
@@ -189,14 +189,14 @@ func FetchObject(client client.Client, namespace string, name string, obj client
 }
 
 // createBuiltInAdminRole will return a new built-in ArgoCDRole with admin permissions.
-func createBuiltInAdminRole() *argoprojiov1alpha1.ArgoCDRole {
-	return &argoprojiov1alpha1.ArgoCDRole{
+func createBuiltInAdminRole() *rbacoperatorv1alpha1.ArgoCDRole {
+	return &rbacoperatorv1alpha1.ArgoCDRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      common.ArgoCDRoleAdmin,
 			Namespace: common.ArgoCDRBACConfigMapNamespace,
 		},
-		Spec: argoprojiov1alpha1.ArgoCDRoleSpec{
-			Rules: []argoprojiov1alpha1.Rule{
+		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
+			Rules: []rbacoperatorv1alpha1.Rule{
 				{
 					Resource: "applications",
 					Verbs:    []string{"override", "sync", "create", "update", "delete", "action", "get"},
@@ -253,14 +253,14 @@ func createBuiltInAdminRole() *argoprojiov1alpha1.ArgoCDRole {
 }
 
 // createBuiltInReadOnlyRole will return a new built-in ArgoCDRole with read-only permissions.
-func createBuiltInReadOnlyRole() *argoprojiov1alpha1.ArgoCDRole {
-	return &argoprojiov1alpha1.ArgoCDRole{
+func createBuiltInReadOnlyRole() *rbacoperatorv1alpha1.ArgoCDRole {
+	return &rbacoperatorv1alpha1.ArgoCDRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      common.ArgoCDRoleAdmin,
 			Namespace: common.ArgoCDRBACConfigMapNamespace,
 		},
-		Spec: argoprojiov1alpha1.ArgoCDRoleSpec{
-			Rules: []argoprojiov1alpha1.Rule{
+		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
+			Rules: []rbacoperatorv1alpha1.Rule{
 				{
 					Resource: "applications",
 					Verbs:    []string{"get"},

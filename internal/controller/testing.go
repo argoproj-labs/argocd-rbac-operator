@@ -20,72 +20,26 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 )
 
 const (
-	testNamespace = "default"
-	testRoleName  = "test-role"
+	testNamespace       = "default"
+	testRBACCMNamespace = "argocd"
+
+	testRoleName        = "test-role"
+	testRoleBindingName = "test-role-binding"
 )
 
-// func makeTestRoleWithSSOUser() *argoprojiov1alpha1.Role {
-// 	r := &argoprojiov1alpha1.Role{
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Name:      testRoleName,
-// 			Namespace: testNamespace,
-// 		},
-// 		Spec: argoprojiov1alpha1.RoleSpec{
-// 			Rules: []argoprojiov1alpha1.Rule{
-// 				{
-// 					Resource: "applications",
-// 					Verbs:    []string{"get", "list"},
-// 					Objects:  []string{"*/*"},
-// 				},
-// 			},
-// 			Subjects: []argoprojiov1alpha1.Subject{
-// 				{
-// 					Kind: "sso",
-// 					Name: "test-user",
-// 				},
-// 			},
-// 		},
-// 	}
-// 	return r
-// }
-
-// func makeTestRoleWithLocalUser() *argoprojiov1alpha1.Role {
-// 	r := &argoprojiov1alpha1.Role{
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Name:      testRoleName,
-// 			Namespace: testNamespace,
-// 		},
-// 		Spec: argoprojiov1alpha1.RoleSpec{
-// 			Rules: []argoprojiov1alpha1.Rule{
-// 				{
-// 					Resource: "applications",
-// 					Verbs:    []string{"get", "list"},
-// 					Objects:  []string{"*/*"},
-// 				},
-// 			},
-// 			Subjects: []argoprojiov1alpha1.Subject{
-// 				{
-// 					Kind: "local",
-// 					Name: "test-local-user",
-// 				},
-// 			},
-// 		},
-// 	}
-// 	return r
-// }
-
-func makeTestRole() *argoprojiov1alpha1.ArgoCDRole {
-	r := &argoprojiov1alpha1.ArgoCDRole{
+func makeTestRole() *rbacoperatorv1alpha1.ArgoCDRole {
+	r := &rbacoperatorv1alpha1.ArgoCDRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testRoleName,
 			Namespace: testNamespace,
 		},
-		Spec: argoprojiov1alpha1.ArgoCDRoleSpec{
-			Rules: []argoprojiov1alpha1.Rule{
+		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
+			Rules: []rbacoperatorv1alpha1.Rule{
 				{
 					Resource: "applications",
 					Verbs:    []string{"get", "list"},
@@ -97,21 +51,62 @@ func makeTestRole() *argoprojiov1alpha1.ArgoCDRole {
 	return r
 }
 
-// func makeRBACConfigMap() *corev1.ConfigMap {
-// 	cm := &corev1.ConfigMap{
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Name:      common.ArgoCDRBACConfigMapName,
-// 			Namespace: common.ArgoCDRBACConfigMapNamespace,
-// 		},
-// 	}
-// 	return cm
-// }
+func makeRBACConfigMap() *corev1.ConfigMap {
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      common.ArgoCDRBACConfigMapName,
+			Namespace: testRBACCMNamespace,
+		},
+		Data: map[string]string{
+			"policy.csv": "",
+		},
+	}
+	return cm
+}
 
 func makeArgoCDNamespace() *corev1.Namespace {
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "argocd",
+			Name: testRBACCMNamespace,
 		},
 	}
 	return ns
+}
+
+func makeRBACOperatorNamespace() *corev1.Namespace {
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: testNamespace,
+		},
+	}
+	return ns
+}
+
+func makeTestRoleBinding() *rbacoperatorv1alpha1.ArgoCDRoleBinding {
+	rb := &rbacoperatorv1alpha1.ArgoCDRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      testRoleBindingName,
+			Namespace: testNamespace,
+		},
+		Spec: rbacoperatorv1alpha1.ArgoCDRoleBindingSpec{
+			Subjects: []rbacoperatorv1alpha1.Subject{
+				{
+					Kind: "role",
+					Name: "other-test-role",
+				},
+				{
+					Kind: "sso",
+					Name: "test-sso-user",
+				},
+				{
+					Kind: "local",
+					Name: "test-local-user",
+				},
+			},
+			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
+				Name: testRoleName,
+			},
+		},
+	}
+	return rb
 }

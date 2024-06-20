@@ -20,20 +20,19 @@ import (
 	"context"
 	"fmt"
 
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
 	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 )
 
-func (r *ArgoCDRoleReconciler) addFinalizer(ctx context.Context, role *argoprojiov1alpha1.ArgoCDRole) error {
-	role.AddFinalizer(argoprojiov1alpha1.ArgoCDRoleFinalizerName)
+func (r *ArgoCDRoleReconciler) addFinalizer(ctx context.Context, role *rbacoperatorv1alpha1.ArgoCDRole) error {
+	role.AddFinalizer(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName)
 	return r.Update(ctx, role)
 }
 
-func (r *ArgoCDRoleReconciler) handleFinalizer(ctx context.Context, role *argoprojiov1alpha1.ArgoCDRole) error {
-	if !role.HasFinalizer(argoprojiov1alpha1.ArgoCDRoleFinalizerName) {
+func (r *ArgoCDRoleReconciler) handleFinalizer(ctx context.Context, role *rbacoperatorv1alpha1.ArgoCDRole) error {
+	if !role.HasFinalizer(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName) {
 		return nil
 	}
 
@@ -41,18 +40,13 @@ func (r *ArgoCDRoleReconciler) handleFinalizer(ctx context.Context, role *argopr
 		return err
 	}
 
-	role.RemoveFinalizer(argoprojiov1alpha1.ArgoCDRoleFinalizerName)
+	role.RemoveFinalizer(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName)
 	return r.Update(ctx, role)
 }
 
-func (r *ArgoCDRoleReconciler) delete(role *argoprojiov1alpha1.ArgoCDRole) error {
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      common.ArgoCDRBACConfigMapName,
-			Namespace: common.ArgoCDRBACConfigMapNamespace,
-		},
-	}
-	overlayKey := fmt.Sprintf("policy.%s.csv", role.ObjectMeta.Name)
+func (r *ArgoCDRoleReconciler) delete(role *rbacoperatorv1alpha1.ArgoCDRole) error {
+	cm := newConfigMap()
+	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.ObjectMeta.Name)
 	if IsObjectFound(r.Client, cm.Namespace, cm.Name, cm) {
 		delete(cm.Data, overlayKey)
 		if err := r.Client.Update(context.TODO(), cm); err != nil {
@@ -63,13 +57,13 @@ func (r *ArgoCDRoleReconciler) delete(role *argoprojiov1alpha1.ArgoCDRole) error
 	return nil
 }
 
-func (r *ArgoCDRoleBindingReconciler) addFinalizer(ctx context.Context, rb *argoprojiov1alpha1.ArgoCDRoleBinding) error {
-	rb.AddFinalizer(argoprojiov1alpha1.ArgoCDRoleBindingFinalizerName)
+func (r *ArgoCDRoleBindingReconciler) addFinalizer(ctx context.Context, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding) error {
+	rb.AddFinalizer(rbacoperatorv1alpha1.ArgoCDRoleBindingFinalizerName)
 	return r.Update(ctx, rb)
 }
 
-func (r *ArgoCDRoleBindingReconciler) handleFinalizer(ctx context.Context, rb *argoprojiov1alpha1.ArgoCDRoleBinding) error {
-	if !rb.HasFinalizer(argoprojiov1alpha1.ArgoCDRoleBindingFinalizerName) {
+func (r *ArgoCDRoleBindingReconciler) handleFinalizer(ctx context.Context, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding) error {
+	if !rb.HasFinalizer(rbacoperatorv1alpha1.ArgoCDRoleBindingFinalizerName) {
 		return nil
 	}
 
@@ -77,20 +71,15 @@ func (r *ArgoCDRoleBindingReconciler) handleFinalizer(ctx context.Context, rb *a
 		return err
 	}
 
-	rb.RemoveFinalizer(argoprojiov1alpha1.ArgoCDRoleBindingFinalizerName)
+	rb.RemoveFinalizer(rbacoperatorv1alpha1.ArgoCDRoleBindingFinalizerName)
 	return r.Update(ctx, rb)
 }
 
-func (r *ArgoCDRoleBindingReconciler) delete(rb *argoprojiov1alpha1.ArgoCDRoleBinding) error {
+func (r *ArgoCDRoleBindingReconciler) delete(rb *rbacoperatorv1alpha1.ArgoCDRoleBinding) error {
 	roleRefName := rb.Spec.ArgoCDRoleRef.Name
 	if roleRefName == common.ArgoCDRoleAdmin || roleRefName == common.ArgoCDRoleReadOnly {
-		cm := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      common.ArgoCDRBACConfigMapName,
-				Namespace: common.ArgoCDRBACConfigMapNamespace,
-			},
-		}
-		overlayKey := fmt.Sprintf("policy.%s.csv", roleRefName)
+		cm := newConfigMap()
+		overlayKey := fmt.Sprintf("policy.%s.%s.csv", rb.Namespace, roleRefName)
 		if IsObjectFound(r.Client, cm.Namespace, cm.Name, cm) {
 			delete(cm.Data, overlayKey)
 			if err := r.Client.Update(context.TODO(), cm); err != nil {
@@ -100,7 +89,7 @@ func (r *ArgoCDRoleBindingReconciler) delete(rb *argoprojiov1alpha1.ArgoCDRoleBi
 		return nil
 	}
 
-	role := &argoprojiov1alpha1.ArgoCDRole{
+	role := &rbacoperatorv1alpha1.ArgoCDRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      roleRefName,
 			Namespace: rb.Namespace,
