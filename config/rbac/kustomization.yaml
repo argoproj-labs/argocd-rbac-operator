@@ -15,6 +15,6 @@ resources:
 # if you do not want those helpers be installed with your Project.
 - argocdrolebinding_editor_role.yaml
 - argocdrolebinding_viewer_role.yaml
-- role_editor_role.yaml
-- role_viewer_role.yaml
+- argocdrole_editor_role.yaml
+- argocdrole_viewer_role.yaml
 
