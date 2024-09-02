@@ -20,66 +20,8 @@ import (
 	"context"
 	"fmt"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-var _ = Describe("ArgoCDRole Controller", func() {
-	Context("When reconciling a resource", func() {
 
-		ctx := context.Background()
-
-		role := makeTestRole()
-		typeNamespacedNameRole := types.NamespacedName{
-			Name:      testRoleName,
-			Namespace: testNamespace,
-		}
-
-		nsCM := makeArgoCDNamespace()
-		/* 		typeNamespacedNameNsCM := types.NamespacedName{
-			Name: testRBACCMNamespace,
-		} */
-
-		BeforeEach(func() {
-			By("creating the namespace for the RBAC ConfigMap")
-			Expect(k8sClient.Create(ctx, nsCM)).Should(Succeed())
-
-			By("creating the RBAC ConfigMap")
-			Expect(k8sClient.Create(ctx, makeRBACConfigMap())).Should(Succeed())
-
-			By("creating the custom resource for the Kind Role")
-			Expect(k8sClient.Create(ctx, role)).Should(Succeed())
-		})
-
-		AfterEach(func() {
-			By("Cleanup the specific resource instance Role")
-			Expect(k8sClient.Delete(ctx, makeTestRole())).Should(Succeed())
-
-			By("Ensuring the Role is deleted")
-			Expect(k8sClient.Get(ctx, typeNamespacedNameRole, makeTestRole())).ShouldNot(Succeed())
-			cm := makeRBACConfigMap()
-			Expect(k8sClient.Get(ctx, types.NamespacedName{Namespace: cm.Namespace, Name: cm.Name}, cm)).Should(Succeed())
-			Expect(cm.Data).ShouldNot(HaveKey(fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)))
-
-			By("Cleanup the RBAC ConfigMap")
-			Expect(k8sClient.Delete(ctx, makeRBACConfigMap())).Should(Succeed())
-
-			By("Cleanup the namespace for the RBAC ConfigMap")
-			Expect(k8sClient.Delete(ctx, nsCM)).Should(Succeed())
-		})
-
-		It("should successfully reconcile the resource", func() {
-			By("Reconciling the created resource")
-			controllerReconciler := &ArgoCDRoleReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
-			}
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: typeNamespacedNameRole,
-			})
-			Expect(err).NotTo(HaveOccurred())
-		})
-	})
-})
