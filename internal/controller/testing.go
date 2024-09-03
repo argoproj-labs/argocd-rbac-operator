@@ -62,16 +62,13 @@ func makeTestArgoCDRoleBindingReconciler(client client.Client, sch *runtime.Sche
 	}
 }
 
-func makeTestReconcilerClient(sch *runtime.Scheme, resObjs, subresObjs []client.Object, runtimeObj []runtime.Object) client.Client {
+func makeTestReconcilerClient(sch *runtime.Scheme, resObjs, subresObjs []client.Object) client.Client {
 	client := fake.NewClientBuilder().WithScheme(sch)
 	if len(resObjs) > 0 {
 		client = client.WithObjects(resObjs...)
 	}
 	if len(subresObjs) > 0 {
 		client = client.WithStatusSubresource(subresObjs...)
-	}
-	if len(runtimeObj) > 0 {
-		client = client.WithRuntimeObjects(runtimeObj...)
 	}
 	return client.Build()
 }
@@ -182,6 +179,54 @@ func makeTestRoleBindingWithLocalSubject(opts ...argocdRoleBindingOpt) *rbacoper
 	return rb
 }
 
+func makeTestRoleBindingForBuiltInAdmin(opts ...argocdRoleBindingOpt) *rbacoperatorv1alpha1.ArgoCDRoleBinding {
+	rb := &rbacoperatorv1alpha1.ArgoCDRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      testRoleBindingName,
+			Namespace: testNamespace,
+		},
+		Spec: rbacoperatorv1alpha1.ArgoCDRoleBindingSpec{
+			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
+				Name: common.ArgoCDRoleAdmin,
+			},
+			Subjects: []rbacoperatorv1alpha1.Subject{
+				{
+					Kind: "role",
+					Name: "rb-role-test",
+				},
+			},
+		},
+	}
+	for _, opt := range opts {
+		opt(rb)
+	}
+	return rb
+}
+
+func makeTestRoleBindingForBuiltInReadOnly(opts ...argocdRoleBindingOpt) *rbacoperatorv1alpha1.ArgoCDRoleBinding {
+	rb := &rbacoperatorv1alpha1.ArgoCDRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      testRoleBindingName,
+			Namespace: testNamespace,
+		},
+		Spec: rbacoperatorv1alpha1.ArgoCDRoleBindingSpec{
+			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
+				Name: common.ArgoCDRoleReadOnly,
+			},
+			Subjects: []rbacoperatorv1alpha1.Subject{
+				{
+					Kind: "role",
+					Name: "rb-role-test",
+				},
+			},
+		},
+	}
+	for _, opt := range opts {
+		opt(rb)
+	}
+	return rb
+}
+
 func makeTestRBACConfigMap() *corev1.ConfigMap {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -190,6 +235,19 @@ func makeTestRBACConfigMap() *corev1.ConfigMap {
 		},
 		Data: map[string]string{
 			"policy.csv": "",
+		},
+	}
+	return cm
+}
+
+func makeTestRBACConfigMap_WithChangedPolicyCSV() *corev1.ConfigMap {
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      common.ArgoCDRBACConfigMapName,
+			Namespace: testRBACCMNamespace,
+		},
+		Data: map[string]string{
+			"policy.csv": "test",
 		},
 	}
 	return cm
@@ -223,6 +281,62 @@ func makeTestCM_ArgoCDRole_WithRoleBindingRoleSubject_Expected() *corev1.ConfigM
 	return cm
 }
 
+func makeTestCM_ArgoCDRole_WithRoleBindingSSOSubject_Expected() *corev1.ConfigMap {
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      common.ArgoCDRBACConfigMapName,
+			Namespace: testRBACCMNamespace,
+		},
+		Data: map[string]string{
+			"policy.csv": "",
+			fmt.Sprintf("policy.%s.%s.csv", testNamespace, testRoleName): fmt.Sprintf("p, role:%s, applications, get, */*, allow\np, role:%s, applications, list, */*, allow\ng, gosha, role:%s\n", testRoleName, testRoleName, testRoleName),
+		},
+	}
+	return cm
+}
+
+func makeTestCM_ArgoCDRole_WithRoleBindingLocalSubject_Expected() *corev1.ConfigMap {
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      common.ArgoCDRBACConfigMapName,
+			Namespace: testRBACCMNamespace,
+		},
+		Data: map[string]string{
+			"policy.csv": "",
+			fmt.Sprintf("policy.%s.%s.csv", testNamespace, testRoleName): fmt.Sprintf("p, role:%s, applications, get, */*, allow\np, role:%s, applications, list, */*, allow\np, localUser, applications, get, */*, allow\np, localUser, applications, list, */*, allow\n", testRoleName, testRoleName),
+		},
+	}
+	return cm
+}
+
+func makeTestCM_BuiltInAdmin_WithRoleBinding_Expected() *corev1.ConfigMap {
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      common.ArgoCDRBACConfigMapName,
+			Namespace: testRBACCMNamespace,
+		},
+		Data: map[string]string{
+			"policy.csv": "",
+			fmt.Sprintf("policy.%s.%s.csv", testRBACCMNamespace, common.ArgoCDRoleAdmin): fmt.Sprintf("g, role:rb-role-test, role:%s\n", common.ArgoCDRoleAdmin),
+		},
+	}
+	return cm
+}
+
+func makeTestCM_BuiltInReadOnly_WithRoleBinding_Expected() *corev1.ConfigMap {
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      common.ArgoCDRBACConfigMapName,
+			Namespace: testRBACCMNamespace,
+		},
+		Data: map[string]string{
+			"policy.csv": "",
+			fmt.Sprintf("policy.%s.%s.csv", testRBACCMNamespace, common.ArgoCDRoleReadOnly): fmt.Sprintf("g, role:rb-role-test, role:%s\n", common.ArgoCDRoleReadOnly),
+		},
+	}
+	return cm
+}
+
 func makeTestArgoCDNamespace() *corev1.Namespace {
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -232,13 +346,13 @@ func makeTestArgoCDNamespace() *corev1.Namespace {
 	return ns
 }
 
-func addFinalizer(finalizer string) argocdRoleOpt {
+func addFinalizerRole(finalizer string) argocdRoleOpt {
 	return func(r *rbacoperatorv1alpha1.ArgoCDRole) {
 		r.Finalizers = append(r.Finalizers, finalizer)
 	}
 }
 
-func deletedAt(now time.Time) argocdRoleOpt {
+func roleDeletedAt(now time.Time) argocdRoleOpt {
 	return func(r *rbacoperatorv1alpha1.ArgoCDRole) {
 		wrapped := metav1.NewTime(now)
 		r.ObjectMeta.DeletionTimestamp = &wrapped
@@ -248,5 +362,18 @@ func deletedAt(now time.Time) argocdRoleOpt {
 func addRoleBinding(roleBindingName string) argocdRoleOpt {
 	return func(r *rbacoperatorv1alpha1.ArgoCDRole) {
 		r.Status.ArgoCDRoleBindingRef = roleBindingName
+	}
+}
+
+func addFinalizerRoleBinding(finalizer string) argocdRoleBindingOpt {
+	return func(r *rbacoperatorv1alpha1.ArgoCDRoleBinding) {
+		r.Finalizers = append(r.Finalizers, finalizer)
+	}
+}
+
+func roleBindingDeletedAt(now time.Time) argocdRoleBindingOpt {
+	return func(r *rbacoperatorv1alpha1.ArgoCDRoleBinding) {
+		wrapped := metav1.NewTime(now)
+		r.ObjectMeta.DeletionTimestamp = &wrapped
 	}
 }

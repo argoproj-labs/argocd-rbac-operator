@@ -25,7 +25,6 @@ import (
 	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -37,17 +36,16 @@ var _ reconcile.Reconciler = &ArgoCDRoleBindingReconciler{}
 
 func TestArgoCDRoleReconciler_Reconcile(t *testing.T) {
 	logf.SetLogger(ZapLogger(true))
-	argocdRole := makeTestRole(addFinalizer(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName))
+	argocdRole := makeTestRole(addFinalizerRole(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName))
 
 	resObjs := []client.Object{argocdRole}
 	subresObjs := []client.Object{argocdRole}
-	runtimeObjs := []runtime.Object{}
 	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
-	client := makeTestReconcilerClient(scheme, resObjs, subresObjs, runtimeObjs)
+	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
 	reconciler := makeTestArgoCDRoleReconciler(client, scheme)
 
 	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestArgoCDNamespace()))
-	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestRBACConfigMap()))
+	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestRBACConfigMap_WithChangedPolicyCSV()))
 
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{
@@ -75,9 +73,9 @@ func TestArgoCDRoleReconciler_AddFinalizer(t *testing.T) {
 
 	resObjs := []client.Object{argocdRole}
 	subresObjs := []client.Object{argocdRole}
-	runtimeObjs := []runtime.Object{}
+
 	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
-	client := makeTestReconcilerClient(scheme, resObjs, subresObjs, runtimeObjs)
+	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
 	reconciler := makeTestArgoCDRoleReconciler(client, scheme)
 
 	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestArgoCDNamespace()))
@@ -108,9 +106,8 @@ func TestArgoCDRoleReconciler_RoleNotFound(t *testing.T) {
 
 	resObjs := []client.Object{}
 	subresObjs := []client.Object{}
-	runtimeObjs := []runtime.Object{}
 	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
-	client := makeTestReconcilerClient(scheme, resObjs, subresObjs, runtimeObjs)
+	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
 	reconciler := makeTestArgoCDRoleReconciler(client, scheme)
 
 	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestArgoCDNamespace()))
@@ -133,13 +130,13 @@ func TestArgoCDRoleReconciler_RoleNotFound(t *testing.T) {
 
 func TestArgoCDRoleReconciler_CMNotFound(t *testing.T) {
 	logf.SetLogger(ZapLogger(true))
-	argocdRole := makeTestRole(addFinalizer(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName))
+	argocdRole := makeTestRole(addFinalizerRole(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName))
 
 	resObjs := []client.Object{argocdRole}
 	subresObjs := []client.Object{argocdRole}
-	runtimeObjs := []runtime.Object{}
+
 	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
-	client := makeTestReconcilerClient(scheme, resObjs, subresObjs, runtimeObjs)
+	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
 	reconciler := makeTestArgoCDRoleReconciler(client, scheme)
 
 	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestArgoCDNamespace()))
@@ -158,13 +155,13 @@ func TestArgoCDRoleReconciler_CMNotFound(t *testing.T) {
 
 func TestArgoCDRoleReconciler_HandleFinalizer(t *testing.T) {
 	logf.SetLogger(ZapLogger(true))
-	argocdRole := makeTestRole(addFinalizer(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName), deletedAt(time.Now()))
+	argocdRole := makeTestRole(addFinalizerRole(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName), roleDeletedAt(time.Now()))
 
 	resObjs := []client.Object{argocdRole}
 	subresObjs := []client.Object{argocdRole}
-	runtimeObjs := []runtime.Object{}
+
 	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
-	client := makeTestReconcilerClient(scheme, resObjs, subresObjs, runtimeObjs)
+	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
 	reconciler := makeTestArgoCDRoleReconciler(client, scheme)
 
 	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestArgoCDNamespace()))
@@ -194,17 +191,17 @@ func TestArgoCDRoleReconciler_RoleHasRoleBinding(t *testing.T) {
 	logf.SetLogger(ZapLogger(true))
 
 	argocdRoleBinding := makeTestRoleBindingWithRoleSubject()
-	argocdRole := makeTestRole(addFinalizer(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName), addRoleBinding(argocdRoleBinding.Name))
+	argocdRole := makeTestRole(addFinalizerRole(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName), addRoleBinding(argocdRoleBinding.Name))
 
 	resObjs := []client.Object{argocdRole, argocdRoleBinding}
 	subresObjs := []client.Object{argocdRole, argocdRoleBinding}
-	runtimeObjs := []runtime.Object{}
+
 	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
-	client := makeTestReconcilerClient(scheme, resObjs, subresObjs, runtimeObjs)
+	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
 	reconciler := makeTestArgoCDRoleReconciler(client, scheme)
 
 	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestArgoCDNamespace()))
-	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestRBACConfigMap()))
+	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestRBACConfigMap_WithChangedPolicyCSV()))
 
 	req := reconcile.Request{
 		NamespacedName: types.NamespacedName{
@@ -229,13 +226,13 @@ func TestArgoCDRoleReconciler_RoleHasRoleBinding(t *testing.T) {
 func TestArgoCDRoleReconciler_RoleBindingObjectMissing(t *testing.T) {
 	logf.SetLogger(ZapLogger(true))
 
-	argocdRole := makeTestRole(addFinalizer(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName), addRoleBinding("rb-role-test"))
+	argocdRole := makeTestRole(addFinalizerRole(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName), addRoleBinding("rb-role-test"))
 
 	resObjs := []client.Object{argocdRole}
 	subresObjs := []client.Object{argocdRole}
-	runtimeObjs := []runtime.Object{}
+
 	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
-	client := makeTestReconcilerClient(scheme, resObjs, subresObjs, runtimeObjs)
+	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
 	reconciler := makeTestArgoCDRoleReconciler(client, scheme)
 
 	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestArgoCDNamespace()))
