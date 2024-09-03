@@ -7,6 +7,7 @@ toolchain go1.22.3
 require (
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1
+	github.com/stretchr/testify v1.9.0
 	k8s.io/apimachinery v0.30.1
 	k8s.io/client-go v0.30.1
 	sigs.k8s.io/controller-runtime v0.18.4
@@ -15,6 +16,7 @@ require (
 require (
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 )
 
 require (
