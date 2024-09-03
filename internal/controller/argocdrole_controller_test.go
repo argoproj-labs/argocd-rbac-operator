@@ -36,7 +36,7 @@ var _ reconcile.Reconciler = &ArgoCDRoleBindingReconciler{}
 
 func TestArgoCDRoleReconciler_Reconcile(t *testing.T) {
 	logf.SetLogger(ZapLogger(true))
-	argocdRole := makeTestRole(addFinalizerRole(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName))
+	argocdRole := makeTestRole(addFinalizerRole())
 
 	resObjs := []client.Object{argocdRole}
 	subresObjs := []client.Object{argocdRole}
@@ -130,7 +130,7 @@ func TestArgoCDRoleReconciler_RoleNotFound(t *testing.T) {
 
 func TestArgoCDRoleReconciler_CMNotFound(t *testing.T) {
 	logf.SetLogger(ZapLogger(true))
-	argocdRole := makeTestRole(addFinalizerRole(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName))
+	argocdRole := makeTestRole(addFinalizerRole())
 
 	resObjs := []client.Object{argocdRole}
 	subresObjs := []client.Object{argocdRole}
@@ -155,7 +155,7 @@ func TestArgoCDRoleReconciler_CMNotFound(t *testing.T) {
 
 func TestArgoCDRoleReconciler_HandleFinalizer(t *testing.T) {
 	logf.SetLogger(ZapLogger(true))
-	argocdRole := makeTestRole(addFinalizerRole(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName), roleDeletedAt(time.Now()))
+	argocdRole := makeTestRole(addFinalizerRole(), roleDeletedAt(time.Now()))
 
 	resObjs := []client.Object{argocdRole}
 	subresObjs := []client.Object{argocdRole}
@@ -191,7 +191,7 @@ func TestArgoCDRoleReconciler_RoleHasRoleBinding(t *testing.T) {
 	logf.SetLogger(ZapLogger(true))
 
 	argocdRoleBinding := makeTestRoleBindingWithRoleSubject()
-	argocdRole := makeTestRole(addFinalizerRole(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName), addRoleBinding(argocdRoleBinding.Name))
+	argocdRole := makeTestRole(addFinalizerRole(), addRoleBinding(argocdRoleBinding.Name))
 
 	resObjs := []client.Object{argocdRole, argocdRoleBinding}
 	subresObjs := []client.Object{argocdRole, argocdRoleBinding}
@@ -226,7 +226,7 @@ func TestArgoCDRoleReconciler_RoleHasRoleBinding(t *testing.T) {
 func TestArgoCDRoleReconciler_RoleBindingObjectMissing(t *testing.T) {
 	logf.SetLogger(ZapLogger(true))
 
-	argocdRole := makeTestRole(addFinalizerRole(rbacoperatorv1alpha1.ArgoCDRoleFinalizerName), addRoleBinding("rb-role-test"))
+	argocdRole := makeTestRole(addFinalizerRole(), addRoleBinding("rb-role-test"))
 
 	resObjs := []client.Object{argocdRole}
 	subresObjs := []client.Object{argocdRole}

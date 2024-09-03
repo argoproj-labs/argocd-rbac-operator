@@ -346,9 +346,9 @@ func makeTestArgoCDNamespace() *corev1.Namespace {
 	return ns
 }
 
-func addFinalizerRole(finalizer string) argocdRoleOpt {
+func addFinalizerRole() argocdRoleOpt {
 	return func(r *rbacoperatorv1alpha1.ArgoCDRole) {
-		r.Finalizers = append(r.Finalizers, finalizer)
+		r.Finalizers = append(r.Finalizers, rbacoperatorv1alpha1.ArgoCDRoleFinalizerName)
 	}
 }
 
@@ -365,9 +365,9 @@ func addRoleBinding(roleBindingName string) argocdRoleOpt {
 	}
 }
 
-func addFinalizerRoleBinding(finalizer string) argocdRoleBindingOpt {
+func addFinalizerRoleBinding() argocdRoleBindingOpt {
 	return func(r *rbacoperatorv1alpha1.ArgoCDRoleBinding) {
-		r.Finalizers = append(r.Finalizers, finalizer)
+		r.Finalizers = append(r.Finalizers, rbacoperatorv1alpha1.ArgoCDRoleBindingFinalizerName)
 	}
 }
 
