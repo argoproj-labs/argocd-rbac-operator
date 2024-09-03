@@ -256,7 +256,7 @@ func createBuiltInAdminRole() *rbacoperatorv1alpha1.ArgoCDRole {
 func createBuiltInReadOnlyRole() *rbacoperatorv1alpha1.ArgoCDRole {
 	return &rbacoperatorv1alpha1.ArgoCDRole{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      common.ArgoCDRoleAdmin,
+			Name:      common.ArgoCDRoleReadOnly,
 			Namespace: common.ArgoCDRBACConfigMapNamespace,
 		},
 		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
