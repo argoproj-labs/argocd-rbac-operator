@@ -40,6 +40,7 @@ spec:
             description: ArgoCDRoleSpec defines the desired state of Role
             properties:
               rules:
+                description: TESTING
                 // TODO: add desc for rules
                 items:
                   properties:
