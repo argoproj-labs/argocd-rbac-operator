@@ -40,13 +40,16 @@ spec:
             description: ArgoCDRoleSpec defines the desired state of Role
             properties:
               rules:
+                // TODO: add desc for rules
                 items:
                   properties:
                     objects:
+                      // TODO: add desc for objects
                       items:
                         type: string
                       type: array
                     resource:
+                      // TODO: add desc for resource
                       enum:
                       - clusters
                       - projects
@@ -61,6 +64,7 @@ spec:
                       - extensions
                       type: string
                     verbs:
+                      // TODO: add desc for verbs
                       items:
                         type: string
                       type: array
@@ -77,8 +81,10 @@ spec:
             description: ArgoCDRoleStatus defines the observed state of Role
             properties:
               argocdRoleBindingRef:
+                // TODO: add desc for argocdRoleBindingRef
                 type: string
               conditions:
+                // TODO: add desc for conditions
                 items:
                   description: A Condition that may apply to a resource.
                   properties:
