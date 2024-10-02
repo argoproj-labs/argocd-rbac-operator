@@ -35,6 +35,7 @@ type Subject struct {
 	Name string `json:"name"`
 }
 
+// argocdRoleRef defines the reference to the role being granted.
 type ArgoCDRoleRef struct {
 	// Name of the ArgoCDRole. Should not start with "role:"
 	Name string `json:"name"`

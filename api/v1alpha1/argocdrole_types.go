@@ -27,6 +27,7 @@ type ArgoCDRoleSpec struct {
 	Rules []Rule `json:"rules"`
 }
 
+// Rules define the desired set of permissions.
 type Rule struct {
 	// +kubebuilder:validation:Enum=clusters;projects;applications;applicationsets;repositories;certificates;accounts;gpgkeys;logs;exec;extensions
 	// +kubebuilder:validation:example=clusters
