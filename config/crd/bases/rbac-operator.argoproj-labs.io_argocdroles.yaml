@@ -40,18 +40,15 @@ spec:
             description: ArgoCDRoleSpec defines the desired state of Role
             properties:
               rules:
-                // TODO: add desc for rules
                 description: Rules define the desired set of permissions.
                 items:
                   properties:
                     objects:
-                      // TODO: add desc for objects
                       description: List of target objects.
                       items:
                         type: string
                       type: array
                     resource:
-                      // TODO: add desc for resource
                       description: Target resource type. 
                       enum:
                       - clusters
@@ -67,7 +64,6 @@ spec:
                       - extensions
                       type: string
                     verbs:
-                      // TODO: add desc for verbs
                       description: Verbs define the behaviors of ArgoCDRole.
                       items:
                         type: string
@@ -85,11 +81,9 @@ spec:
             description: ArgoCDRoleStatus defines the observed state of Role
             properties:
               argocdRoleBindingRef:
-                // TODO: add desc for argocdRoleBindingRef
                 description: argocdRoleBindingRef defines the reference to the role being granted.
                 type: string
               conditions:
-                // TODO: add desc for conditions
                 description: Conditions defines the list of conditions.
                 items:
                   description: A Condition that may apply to a resource.
