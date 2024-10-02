@@ -41,6 +41,7 @@ spec:
             properties:
               argocdRoleRef:
                 // TODO: add desc for argocdRoleRef
+                description: argocdRoleRef defines the reference to the role being granted.
                 properties:
                   name:
                     description: Name of the ArgoCDRole. Should not start with "role:"
@@ -50,10 +51,12 @@ spec:
                 type: object
               subjects:
                 // TODO: add desc for subjects
+                description: List of subjects.
                 items:
                   properties:
                     kind:
                       // TODO: add desc for kind
+                      description: Kind of the subjects.
                       enum:
                       - sso
                       - local
@@ -77,6 +80,7 @@ spec:
             properties:
               conditions:
                 // TODO: add desc for conditions
+                description: Conditions defines the list of conditions.
                 items:
                   description: A Condition that may apply to a resource.
                   properties:
