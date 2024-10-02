@@ -86,7 +86,7 @@ spec:
             properties:
               argocdRoleBindingRef:
                 // TODO: add desc for argocdRoleBindingRef
-                description: argocdRoleBindingRef specifies the binding to an ArgoCDRole.
+                description: argocdRoleBindingRef defines the reference to the role being granted.
                 type: string
               conditions:
                 // TODO: add desc for conditions
