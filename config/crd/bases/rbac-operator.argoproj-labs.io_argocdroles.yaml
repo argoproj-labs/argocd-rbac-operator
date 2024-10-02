@@ -45,6 +45,7 @@ spec:
                 items:
                   properties:
                     objects:
+                      description: TESTING_OBJECTS
                       // TODO: add desc for objects
                       items:
                         type: string
