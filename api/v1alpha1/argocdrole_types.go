@@ -31,9 +31,12 @@ type ArgoCDRoleSpec struct {
 type Rule struct {
 	// +kubebuilder:validation:Enum=clusters;projects;applications;applicationsets;repositories;certificates;accounts;gpgkeys;logs;exec;extensions
 	// +kubebuilder:validation:example=clusters
-	Resource string   `json:"resource"`
-	Verbs    []string `json:"verbs"`
-	Objects  []string `json:"objects"`
+	// Target resource type.
+	Resource string `json:"resource"`
+	// Verbs define the operations that are being performed on the resource.
+	Verbs []string `json:"verbs"`
+	// List of resource's objects the permissions are granted for.
+	Objects []string `json:"objects"`
 }
 
 // ArgoCDRoleStatus defines the observed state of Role
