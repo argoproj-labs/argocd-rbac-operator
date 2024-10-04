@@ -44,7 +44,7 @@ spec:
                 items:
                   properties:
                     objects:
-                      description: List of target objects.
+                      description: List of resource's objects the permissions are granted for.
                       items:
                         type: string
                       type: array
@@ -64,7 +64,7 @@ spec:
                       - extensions
                       type: string
                     verbs:
-                      description: Verbs define the behaviors of ArgoCDRole.
+                      description: Verbs define the operations that are being performed on the resource.
                       items:
                         type: string
                       type: array
@@ -81,7 +81,7 @@ spec:
             description: ArgoCDRoleStatus defines the observed state of Role
             properties:
               argocdRoleBindingRef:
-                description: argocdRoleBindingRef defines the reference to the role being granted.
+                description: argocdRoleBindingRef defines the reference to the ArgoCDRoleBinding Resource.
                 type: string
               conditions:
                 description: Conditions defines the list of conditions.

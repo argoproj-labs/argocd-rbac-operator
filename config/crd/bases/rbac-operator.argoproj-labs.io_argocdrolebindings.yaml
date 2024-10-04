@@ -49,11 +49,11 @@ spec:
                 - name
                 type: object
               subjects:
-                description: List of subjects.
+                description: List of subjects being bound to ArgoCDRole (argocdRoleRef).
                 items:
                   properties:
                     kind:
-                      description: Kind of the subjects.
+                      description: Kind of the subject (sso, local).
                       enum:
                       - sso
                       - local
