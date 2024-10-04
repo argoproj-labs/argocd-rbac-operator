@@ -40,6 +40,8 @@ spec:
             description: ArgoCDRoleBindingSpec defines the desired state of ArgoCDRoleBinding
             properties:
               argocdRoleRef:
+                description: |- 
+                  argocdRoleRef defines the reference to the role being granted.
                 properties:
                   name:
                     description: Name of the ArgoCDRole. Should not start with "role:"
@@ -48,9 +50,11 @@ spec:
                 - name
                 type: object
               subjects:
+                description: List of subjects being bound to ArgoCDRole (argocdRoleRef).
                 items:
                   properties:
                     kind:
+                      description: Kind of the subject (sso, local).
                       enum:
                       - sso
                       - local
@@ -73,6 +77,7 @@ spec:
             description: ArgoCDRoleBindingStatus defines the observed state of ArgoCDRoleBinding
             properties:
               conditions:
+                description: Conditions defines the list of conditions.
                 items:
                   description: A Condition that may apply to a resource.
                   properties:
