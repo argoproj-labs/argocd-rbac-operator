@@ -134,5 +134,5 @@ As for now only single Argo CD deployment type is supported. The default Argo CD
 ## Roadmap
 
 - extend the operator with functionality to manage Argo CD AppProject RBAC
-- achieve test coverage of >= 80%
+- achieve test coverage of >= 80% (current: ~67%)
 - allow management for multi-instances set-up of Argo CD
