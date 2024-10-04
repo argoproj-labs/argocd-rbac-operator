@@ -41,9 +41,11 @@ type Rule struct {
 
 // ArgoCDRoleStatus defines the observed state of Role
 type ArgoCDRoleStatus struct {
+	// argocdRoleBindingRef defines the reference to the ArgoCDRoleBinding Resource.
 	ArgoCDRoleBindingRef string `json:"argocdRoleBindingRef,omitempty"`
 	// +listType=map
 	// +listMapKey=type
+	// Conditions defines the list of conditions.
 	Conditions []Condition `json:"conditions,omitempty"`
 }
 

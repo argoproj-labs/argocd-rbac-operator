@@ -24,10 +24,12 @@ import (
 
 // ArgoCDRoleBindingSpec defines the desired state of ArgoCDRoleBinding
 type ArgoCDRoleBindingSpec struct {
+	// List of subjects being bound to ArgoCDRole (argocdRoleRef).
 	Subjects      []Subject     `json:"subjects"`
 	ArgoCDRoleRef ArgoCDRoleRef `json:"argocdRoleRef"`
 }
 
+// Kind of the subject (sso, local).
 type Subject struct {
 	// +kubebuilder:validation:Enum=sso;local;role
 	Kind string `json:"kind"`
@@ -45,6 +47,7 @@ type ArgoCDRoleRef struct {
 type ArgoCDRoleBindingStatus struct {
 	// +listType=map
 	// +listMapKey=type
+	// Conditions defines the list of conditions.
 	Conditions []Condition `json:"conditions,omitempty"`
 }
 
