@@ -55,7 +55,7 @@ spec:
         #   type: RuntimeDefault
       containers:
       - command:
-        - /manager
+        - /rbac-operator
         args:
           - --leader-elect
           - --health-probe-bind-address=:8081
