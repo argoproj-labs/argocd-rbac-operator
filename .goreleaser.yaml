@@ -29,7 +29,7 @@ builds:
 
 dockers:
   - image_templates:
-      - quay.io/argoprojlabs/argocd-rbac-operator:{{.Version}}
+      - quay.io/argoprojlabs/argocd-rbac-operator:v{{.Version}}
       - quay.io/argoprojlabs/argocd-rbac-operator:latest
     dockerfile: release.Dockerfile
     build_flag_templates:
@@ -37,7 +37,7 @@ dockers:
     - "--label=org.opencontainers.image.created={{.Date}}"
     - "--label=org.opencontainers.image.title={{.ProjectName}}"
     - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-    - "--label=org.opencontainers.image.version={{.Version}}"
+    - "--label=org.opencontainers.image.version=v{{.Version}}"
     - "--platform=linux/amd64"
 
 
