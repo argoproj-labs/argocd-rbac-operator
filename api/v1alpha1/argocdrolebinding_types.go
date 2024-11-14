@@ -29,15 +29,16 @@ type ArgoCDRoleBindingSpec struct {
 	ArgoCDRoleRef ArgoCDRoleRef `json:"argocdRoleRef"`
 }
 
-// Kind of the subject (sso, local).
+// Subject defines the subject being bound to ArgoCDRole.
 type Subject struct {
 	// +kubebuilder:validation:Enum=sso;local;role
+	// Kind of the subject (sso, local or role).
 	Kind string `json:"kind"`
 	// Name of the subject. If Kind is "role", it shouldn't start with "role:"
 	Name string `json:"name"`
 }
 
-// argocdRoleRef defines the reference to the role being granted.
+// ArgocdRoleRef defines the reference to the role being granted.
 type ArgoCDRoleRef struct {
 	// Name of the ArgoCDRole. Should not start with "role:"
 	Name string `json:"name"`
