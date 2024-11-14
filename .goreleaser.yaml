@@ -37,7 +37,7 @@ dockers:
     - "--label=org.opencontainers.image.created={{.Date}}"
     - "--label=org.opencontainers.image.title={{.ProjectName}}"
     - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-    - "--label=org.opencontainers.image.version={{.Version}}"
+    - "--label=org.opencontainers.image.version=v{{.Version}}"
     - "--platform=linux/amd64"
 
 
