@@ -128,3 +128,4 @@ spec:
     storage: true
     subresources:
       status: {}
+      finalizers: {}
