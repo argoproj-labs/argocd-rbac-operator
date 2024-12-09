@@ -24,7 +24,7 @@ spec:
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/default-container: manager
+        kubectl.kubernetes.io/default-container: rbac-operator
       labels:
         control-plane: controller-manager
     spec:
@@ -55,12 +55,12 @@ spec:
         #   type: RuntimeDefault
       containers:
       - command:
-        - /manager
+        - /rbac-operator
         args:
           - --leader-elect
           - --health-probe-bind-address=:8081
         image: controller:latest
-        name: manager
+        name: rbac-operator
         securityContext:
           capabilities:
              drop:
