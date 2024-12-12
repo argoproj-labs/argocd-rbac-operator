@@ -80,7 +80,7 @@ func (r *ArgoCDRoleBinding) IsBeingDeleted() bool {
 }
 
 // ArgoCDRoleFinalizerName is the name of the finalizer used to delete the Role
-const ArgoCDRoleBindingFinalizerName = "rolebinding.rbac-operator.argoproj-labs.io"
+const ArgoCDRoleBindingFinalizerName = "rbac-operator.argoproj-labs.io/finalizer"
 
 // HasFinalizer returns true if the Role has the finalizer
 func (r *ArgoCDRoleBinding) HasFinalizer(finalizerName string) bool {
