@@ -11,6 +11,7 @@ rules:
   verbs:
   - get
   - list
+  - update
   - watch
 - apiGroups:
   - rbac-operator.argoproj-labs.io
@@ -33,6 +34,7 @@ rules:
   verbs:
   - get
   - list
+  - update
   - watch
 - apiGroups:
   - rbac-operator.argoproj-labs.io
