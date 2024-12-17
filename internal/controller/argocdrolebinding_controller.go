@@ -39,7 +39,7 @@ type ArgoCDRoleBindingReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdrolebindings,verbs=get;list;watch;
+// +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdrolebindings,verbs=get;list;watch;update
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdrolebindings/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdrolebindings/finalizers,verbs=update
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdroles,verbs=get;list
