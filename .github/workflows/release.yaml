@@ -29,6 +29,9 @@ jobs:
         with:
           go-version: 1.22.3
 
+      - name: Set env
+        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
       - name: Restore go build cache
         uses: actions/cache@v4
         with:
@@ -43,7 +46,7 @@ jobs:
       - name: Build operator and Tag Version
         run: make docker-build
         env:
-          IMG: ${{ env.REGISTRY_URL }}/${{ env.ORG }}/${{ env.REPO }}:${GITHUB_REF#refs/*/}
+          IMG: ${{ env.REGISTRY_URL }}/${{ env.ORG }}/${{ env.REPO }}:${{ env.VERSION }}
 
       - name: Login to Registry
         uses: docker/login-action@v3
@@ -59,4 +62,4 @@ jobs:
       - name: Push latest operator
         run: make docker-push
         env:
-          IMG: ${{ env.REGISTRY_URL }}/${{ env.ORG }}/${{ env.REPO }}:${GITHUB_REF#refs/*/}
+          IMG: ${{ env.REGISTRY_URL }}/${{ env.ORG }}/${{ env.REPO }}:${{ env.VERSION }}
