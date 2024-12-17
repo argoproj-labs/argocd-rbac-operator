@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: quay.io/argoprojlabs/argocd-rbac-operator
-  newTag: v0.1.4
+  newTag: v0.1.5
