@@ -20,12 +20,12 @@ jobs:
     name: Release
     steps:
       - name: Checkout
-        uses: actions/checkout@4
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup Go
-        uses: actions/setup-go@5 # pin@v4
+        uses: actions/setup-go@v5 
         with:
           go-version: 1.22.3
 
