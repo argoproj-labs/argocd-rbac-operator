@@ -1,6 +1,6 @@
 # VERSION defines the project version for the bundle.
 # Update this value when you upgrade the version of your project.
-VERSION ?= 0.1.5
+VERSION ?= 0.1.6
 
 # Try to detect Docker or Podman
 CONTAINER_TOOL := $(shell command -v docker 2> /dev/null)
@@ -148,11 +148,13 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | $(KUBECTL) apply -f -
+	$(KUSTOMIZE) build config/default | $(KUBECTL) apply --server-side=true -f -
+	$(KUSTOMIZE) build config/cm-role | $(KUBECTL) apply --server-side=true -f -
 
 .PHONY: undeploy
 undeploy: kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
+	$(KUSTOMIZE) build config/cm-role | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
 ##@ Dependencies
 
