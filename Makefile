@@ -1,6 +1,6 @@
 # VERSION defines the project version for the bundle.
 # Update this value when you upgrade the version of your project.
-VERSION ?= 0.1.5
+VERSION ?= 0.1.6
 
 # Try to detect Docker or Podman
 CONTAINER_TOOL := $(shell command -v docker 2> /dev/null)
