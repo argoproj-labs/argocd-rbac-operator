@@ -12,31 +12,53 @@ The Argo CD RBAC Operator provides a CRD based API for the RBAC management of Ar
 
 ## Installation
 
-### Get the Repository
+### With Repository + Kustomize
+
+#### Get the Repository
 
 Clone the Argo CD RBAC Operator repository.
 
-```
+```bash
 git clone https://github.com/argoproj-labs/argocd-rbac-operator.git
 cd argocd-rbac-operator
 ```
 
-### Namespace
+#### Namespace
 
 By default, the operator is installed into the `argocd-rbac-operator-system` namespace. To modify this, update the value of the namespace specified in the `config/default/kustomization.yaml` file.
 
-### Deploy Operator
+#### Deploy Operator
 
 Deploy the operator. This will create all the necessary resources, including the namespace. For running the make command you need to install go-lang package on your system.
 
-```
+```bash
 make deploy
 ```
 
 The operator pod should start and enter a Running state after a few seconds.
 
-```
+```bash
 kubectl get pods -n argocd-rbac-operator-system
+```
+
+### With Helm
+
+First you have to add the repo:
+
+```bash
+helm repo add argocd-rbac-operator https://argoproj-labs.github.io/argocd-rbac-operator/
+```
+
+After the repo has been added, you can install the Helm chart of the operator:
+
+```bash
+helm install argocd-rbac-operator argocd-rbac-operator/argocd-rbac-operator
+```
+
+If you want to change the namespace of the Argo CD instance, image version, or other values, you have to define a values.yaml file and run following command:
+
+```bash
+helm install argocd-rbac-operator argocd-rbac-operator/argocd-rbac-operator -f values.yaml
 ```
 
 ## Usage
