@@ -1,0 +1,73 @@
+# Default values for argocd-rbac-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 1
+
+argocd:
+  # The namespace where the ArgoCD instance is running
+  namespace: argocd
+  # The name of the ArgoCD RBAC ConfigMap
+  cmName: argocd-rbac-cm
+
+# Specify the Operator container image to use for the deployment.
+# For example, the following sets the image to the ``quay.io/argoprojlabs/argocd-rbac-operator`` repo and the v0.1.6 tag.
+# The container pulls the image if not already present
+image:
+  repository: quay.io/argoprojlabs/argocd-rbac-operator
+  tag: v0.1.6
+  pullPolicy: IfNotPresent
+
+# An array of additional annotations to be applied to the operator service account
+serviceAccountAnnotations: []
+# additional labels to be applied to operator resources
+additionalLabels: {}
+
+# An array of Kubernetes secrets to use for pulling images from a private ``image.repository``.
+# Only one array element is supported at this time.
+imagePullSecrets: []
+
+# The Kubernetes `SecurityContext <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/>`__ to use for deploying Operator resources.
+#
+# You may need to modify these values to meet your cluster's security and access settings.
+securityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+# The Kubernetes `SecurityContext <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/>`__ to use for deploying Operator containers.
+# You may need to modify these values to meet your cluster's security and access settings.
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 64Mi
+
+# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8081
+  initialDelaySeconds: 15
+  periodSeconds: 20
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: 8081
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+nodeSelector: {}

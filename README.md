@@ -127,9 +127,9 @@ kubectl delete argocdrolebinding.rbac-operator.argoproj-labs.io/test-role-bindin
 ```
 After the Resource is deleted, the policy string will be also deleted from the RBAC-CM.
 
-### Change the Scope, Default Role or Policy.CSV
+### Change the Policy.CSV
 
-To change the scope, default role or policy.csv you have to make changes in the `internal/controller/common/defaults.go` file.
+To change the policy.csv you have to make changes in the `internal/controller/common/defaults.go` file.
 
 ### Deployment types
 
