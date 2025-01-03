@@ -1,16 +1,14 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  labels:
-    app.kubernetes.io/name: argocd-rbac-operator
-    app.kubernetes.io/managed-by: kustomize
   name: manager-role
-  namespace: argocd
+  labels: {{- include "argocd-rbac-operator.labels" . | nindent 4 }}
+  namespace: {{ .Values.argocd.namespace }}
 rules:
 - apiGroups:
   - ""
   resourceNames:
-  - argocd-rbac-cm
+  - {{ .Values.argocd.cmName }}
   resources:
   - configmaps
   verbs:
