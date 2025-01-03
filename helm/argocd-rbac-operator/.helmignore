@@ -21,3 +21,7 @@
 .idea/
 *.tmproj
 .vscode/
+
+/*.tgz
+output
+*.gotmpl
