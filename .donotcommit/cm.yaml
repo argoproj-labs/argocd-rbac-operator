@@ -1,9 +1,0 @@
-apiVersion: v1
-data:
-  policy.csv: ""
-  policy.default: role:readonly
-  scopes: '[groups]'
-kind: ConfigMap
-metadata:
-  name: argocd-rbac-cm
-  namespace: argocd
