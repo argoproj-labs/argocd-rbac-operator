@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   labels: 
   {{- include "argocd-rbac-operator.labels" . | nindent 4 }}
-  {{- include "argocd-rbac-operator.selectorLabels" . | nindent 4 }}
   name: {{ include "argocd-rbac-operator.name" . }}
   namespace: {{ include "argocd-rbac-operator.namespace" . }}
 spec:
@@ -15,7 +14,6 @@ spec:
       annotations:
         kubectl.kubernetes.io/default-container: rbac-operator
       labels: 
-      {{- include "argocd-rbac-operator.labels" . | nindent 8 }}
       {{- include "argocd-rbac-operator.selectorLabels" . | nindent 8 }}
     spec:
       affinity:
