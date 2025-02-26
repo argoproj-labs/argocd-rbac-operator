@@ -8,6 +8,7 @@ replicaCount: 1
 argocd:
   # The namespace where the ArgoCD instance is running
   namespace: argocd
+  createNamespace: true
   # The name of the ArgoCD RBAC ConfigMap
   cmName: argocd-rbac-cm
 

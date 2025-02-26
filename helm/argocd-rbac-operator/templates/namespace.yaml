@@ -1,3 +1,4 @@
+{{- if .Values.argocd.createNamespace -}}
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -5,3 +6,4 @@ metadata:
     {{- include "argocd-rbac-operator.labels" . | nindent 4 }}
     {{- include "argocd-rbac-operator.selectorLabels" . | nindent 4 }}
   name: {{ include "argocd-rbac-operator.namespace" . }}
+{{- end }}
