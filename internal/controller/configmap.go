@@ -93,6 +93,10 @@ func (r *ArgoCDRoleReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMap, role
 	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
 	roleName := fmt.Sprintf("role:%s", role.Name)
 
+	if cm.Data == nil {
+		cm.Data = make(map[string]string)
+	}
+
 	// Default Policy String
 	if cm.Data[common.ArgoCDKeyRBACPolicyCSV] != getDefaultRBACPolicy() {
 		cm.Data[common.ArgoCDKeyRBACPolicyCSV] = getDefaultRBACPolicy()
@@ -166,6 +170,10 @@ func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMa
 func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMapForBuiltInRole(cm *corev1.ConfigMap, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role *rbacoperatorv1alpha1.ArgoCDRole) error {
 	changed := false
 	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
+
+	if cm.Data == nil {
+		cm.Data = make(map[string]string)
+	}
 
 	// Default Policy String
 	if cm.Data[common.ArgoCDKeyRBACPolicyCSV] != getDefaultRBACPolicy() {
