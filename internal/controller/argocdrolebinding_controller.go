@@ -44,7 +44,7 @@ type ArgoCDRoleBindingReconciler struct {
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdrolebindings/finalizers,verbs=*
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdroles,verbs=get;list
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdroles/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups="",resources=configmaps,verbs=list
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

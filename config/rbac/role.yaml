@@ -9,7 +9,9 @@ rules:
   resources:
   - configmaps
   verbs:
+  - get
   - list
+  - watch
 - apiGroups:
   - rbac-operator.argoproj-labs.io
   resources:
