@@ -13,8 +13,8 @@ spec:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: rbac-operator
-      labels: 
-      {{- include "argocd-rbac-operator.selectorLabels" . | nindent 8 }}
+      labels:
+      {{- include "argocd-rbac-operator.labels" . | nindent 8 }}
     spec:
       affinity:
         nodeAffinity:
