@@ -20,6 +20,7 @@ rules:
   - '*'
   - get
   - list
+  - watch
 - apiGroups:
   - rbac-operator.argoproj-labs.io
   resources:
@@ -40,6 +41,7 @@ rules:
   - '*'
   - get
   - list
+  - watch
 - apiGroups:
   - rbac-operator.argoproj-labs.io
   resources:
