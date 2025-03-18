@@ -22,11 +22,14 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
 	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
@@ -42,7 +45,7 @@ type ArgoCDRoleBindingReconciler struct {
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdrolebindings,verbs=*
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdrolebindings/status,verbs=*
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdrolebindings/finalizers,verbs=*
-// +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdroles,verbs=get;list
+// +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdroles,verbs=get;list;watch
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdroles/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 
@@ -180,5 +183,29 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 func (r *ArgoCDRoleBindingReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&rbacoperatorv1alpha1.ArgoCDRoleBinding{}).
+		Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
+			cm, ok := obj.(*corev1.ConfigMap)
+			if !ok {
+				r.Log.Error(fmt.Errorf("expected ConfigMap but got %T", obj), "can't reconcile config map changes")
+				return nil
+			}
+
+			if cm.Namespace == common.ArgoCDRBACConfigMapNamespace && cm.Name == common.ArgoCDRBACConfigMapName {
+				bindings := &rbacoperatorv1alpha1.ArgoCDRoleBindingList{}
+				if err := r.Client.List(ctx, bindings); err != nil {
+					r.Log.Error(err, "failed to list ArgoCDRoleBinding %s", cm.Name)
+					return nil
+				}
+				reqs := make([]reconcile.Request, 0, len(bindings.Items))
+				for _, bind := range bindings.Items {
+					reqs = append(reqs, reconcile.Request{NamespacedName: types.NamespacedName{
+						Namespace: bind.Namespace,
+						Name:      bind.Name,
+					}})
+				}
+				return reqs
+			}
+			return nil
+		})).
 		Complete(r)
 }

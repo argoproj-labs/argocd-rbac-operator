@@ -22,14 +22,17 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 )
 
 // blank assignment to verify that RoleReconciler implements reconcile.Reconciler
@@ -45,7 +48,7 @@ type ArgoCDRoleReconciler struct {
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdroles,verbs=*
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdroles/status,verbs=*
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdroles/finalizers,verbs=*
-// +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdrolebindings,verbs=get;list
+// +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdrolebindings,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -162,5 +165,29 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 func (r *ArgoCDRoleReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&rbacoperatorv1alpha1.ArgoCDRole{}).
+		Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
+			cm, ok := obj.(*corev1.ConfigMap)
+			if !ok {
+				r.Log.Error(fmt.Errorf("expected ConfigMap but got %T", obj), "can't reconcile config map changes")
+				return nil
+			}
+
+			if cm.Namespace == common.ArgoCDRBACConfigMapNamespace && cm.Name == common.ArgoCDRBACConfigMapName {
+				roles := &rbacoperatorv1alpha1.ArgoCDRoleList{}
+				if err := r.Client.List(ctx, roles); err != nil {
+					r.Log.Error(err, "failed to list ArgoCDRole %s", cm.Name)
+					return nil
+				}
+				reqs := make([]reconcile.Request, 0, len(roles.Items))
+				for _, role := range roles.Items {
+					reqs = append(reqs, reconcile.Request{NamespacedName: types.NamespacedName{
+						Namespace: role.Namespace,
+						Name:      role.Name,
+					}})
+				}
+				return reqs
+			}
+			return nil
+		})).
 		Complete(r)
 }
