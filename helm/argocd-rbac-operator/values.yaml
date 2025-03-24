@@ -5,7 +5,9 @@
 # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
 replicaCount: 1
 
-createNamespace: true
+namespace:
+  nameOverride: ""
+  create: true
 
 argocd:
   # The namespace where the ArgoCD instance is running
@@ -44,7 +46,7 @@ containerSecurityContext:
   allowPrivilegeEscalation: false
   capabilities:
     drop:
-    - ALL
+      - ALL
   readOnlyRootFilesystem: true
   runAsNonRoot: true
   seccompProfile:
