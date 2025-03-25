@@ -39,18 +39,7 @@ type Rule struct {
 	Objects []string `json:"objects"`
 }
 
-// ArgoCDRoleStatus defines the observed state of Role
-type ArgoCDRoleStatus struct {
-	// argocdRoleBindingRef defines the reference to the ArgoCDRoleBinding Resource.
-	ArgoCDRoleBindingRef string `json:"argocdRoleBindingRef,omitempty"`
-	// +listType=map
-	// +listMapKey=type
-	// Conditions defines the list of conditions.
-	Conditions []Condition `json:"conditions,omitempty"`
-}
-
 // +kubebuilder:object:root=true
-// +kubebuilder:subresource:status
 // +genclient
 
 // ArgoCDRole is the Schema for the roles API
@@ -58,8 +47,7 @@ type ArgoCDRole struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ArgoCDRoleSpec   `json:"spec,omitempty"`
-	Status ArgoCDRoleStatus `json:"status,omitempty"`
+	Spec ArgoCDRoleSpec `json:"spec,omitempty"`
 }
 
 // IsBeingDeleted returns true if a deletion timestamp is set
