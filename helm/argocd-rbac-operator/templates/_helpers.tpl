@@ -39,8 +39,13 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Create the name of the namespace
 */}}
 {{- define "argocd-rbac-operator.namespace" -}}
+{{- if .Values.namespace.nameOverride }}
+{{- .Values.namespace.nameOverride | trimSuffix "-" }}
+{{- else }}
 {{- printf "%s-system" .Chart.Name | trimSuffix "-" }}
 {{- end }}
+{{- end }}
+
 
 {{/*
 Create the name of the service account
