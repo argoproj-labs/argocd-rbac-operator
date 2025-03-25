@@ -20,18 +20,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
-
-	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
-
-	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
-	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 )
 
 const (
@@ -47,13 +46,6 @@ func ZapLogger(development bool) logr.Logger {
 }
 
 type SchemeOpt func(*runtime.Scheme) error
-
-func makeTestArgoCDRoleReconciler(client client.Client, sch *runtime.Scheme) *ArgoCDRoleReconciler {
-	return &ArgoCDRoleReconciler{
-		Client: client,
-		Scheme: sch,
-	}
-}
 
 func makeTestArgoCDRoleBindingReconciler(client client.Client, sch *runtime.Scheme) *ArgoCDRoleBindingReconciler {
 	return &ArgoCDRoleBindingReconciler{
@@ -356,12 +348,6 @@ func roleDeletedAt(now time.Time) argocdRoleOpt {
 	return func(r *rbacoperatorv1alpha1.ArgoCDRole) {
 		wrapped := metav1.NewTime(now)
 		r.ObjectMeta.DeletionTimestamp = &wrapped
-	}
-}
-
-func addRoleBinding(roleBindingName string) argocdRoleOpt {
-	return func(r *rbacoperatorv1alpha1.ArgoCDRole) {
-		r.Status.ArgoCDRoleBindingRef = roleBindingName
 	}
 }
 

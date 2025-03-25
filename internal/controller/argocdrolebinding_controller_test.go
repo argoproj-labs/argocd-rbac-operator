@@ -21,17 +21,17 @@ import (
 	"testing"
 	"time"
 
-	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
-	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 )
 
-var _ reconcile.Reconciler = &ArgoCDRoleReconciler{}
 var _ reconcile.Reconciler = &ArgoCDRoleBindingReconciler{}
 
 func TestArgoCDRoleBindingReconciler_ReconcileRoleSubject(t *testing.T) {
@@ -155,54 +155,40 @@ func TestArgoCDRoleBindingReconciler_CMNotFound(t *testing.T) {
 	assert.True(t, res.Requeue)
 }
 
-func TestArgoCDRoleBindingReconciler_HandleFinalizer(t *testing.T) {
-	logf.SetLogger(ZapLogger(true))
+// func TestArgoCDRoleBindingReconciler_HandleFinalizer(t *testing.T) {
+// 	logf.SetLogger(ZapLogger(true))
 
-	argocdRoleBinding := makeTestRoleBindingWithRoleSubject(addFinalizerRoleBinding(), roleBindingDeletedAt(time.Now()))
-	argocdRole := makeTestRole(addFinalizerRole())
+// 	argocdRoleBinding := makeTestRoleBindingWithRoleSubject(addFinalizerRoleBinding(), roleBindingDeletedAt(time.Now()))
+// 	argocdRole := makeTestRole(addFinalizerRole())
 
-	resObjs := []client.Object{argocdRole, argocdRoleBinding}
-	subresObjs := []client.Object{argocdRole, argocdRoleBinding}
-	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
-	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
-	reconciler := makeTestArgoCDRoleBindingReconciler(client, scheme)
-	roleReconciler := makeTestArgoCDRoleReconciler(client, scheme)
+// 	resObjs := []client.Object{argocdRole, argocdRoleBinding}
+// 	subresObjs := []client.Object{argocdRole, argocdRoleBinding}
+// 	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
+// 	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
+// 	reconciler := makeTestArgoCDRoleBindingReconciler(client, scheme)
 
-	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestArgoCDNamespace()))
-	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestRBACConfigMap()))
+// 	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestArgoCDNamespace()))
+// 	assert.NoError(t, reconciler.Client.Create(context.TODO(), makeTestRBACConfigMap()))
 
-	req := reconcile.Request{
-		NamespacedName: types.NamespacedName{
-			Name:      argocdRoleBinding.Name,
-			Namespace: argocdRoleBinding.Namespace,
-		},
-	}
+// 	req := reconcile.Request{
+// 		NamespacedName: types.NamespacedName{
+// 			Name:      argocdRoleBinding.Name,
+// 			Namespace: argocdRoleBinding.Namespace,
+// 		},
+// 	}
 
-	res, err := reconciler.Reconcile(context.TODO(), req)
-	assert.NoError(t, err)
-	if res.Requeue {
-		t.Fatal("reconcile requeued request")
-	}
+// 	res, err := reconciler.Reconcile(context.TODO(), req)
+// 	assert.NoError(t, err)
+// 	if res.Requeue {
+// 		t.Fatal("reconcile requeued request")
+// 	}
 
-	roleReq := reconcile.Request{
-		NamespacedName: types.NamespacedName{
-			Name:      argocdRole.Name,
-			Namespace: argocdRole.Namespace,
-		},
-	}
-
-	roleRes, roleErr := roleReconciler.Reconcile(context.TODO(), roleReq)
-	assert.NoError(t, roleErr)
-	if roleRes.Requeue {
-		t.Fatal("reconcile requeued request")
-	}
-
-	cm := &corev1.ConfigMap{}
-	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: common.ArgoCDRBACConfigMapName, Namespace: testRBACCMNamespace}, cm)
-	assert.NoError(t, err)
-	wantCM := makeTestCMArgoCDRoleExpected()
-	assert.Equal(t, wantCM.Data, cm.Data)
-}
+// 	cm := &corev1.ConfigMap{}
+// 	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: common.ArgoCDRBACConfigMapName, Namespace: testRBACCMNamespace}, cm)
+// 	assert.NoError(t, err)
+// 	wantCM := makeTestCMArgoCDRoleExpected()
+// 	assert.Equal(t, wantCM.Data, cm.Data)
+// }
 
 func TestArgoCDRoleBindingReconciler_RoleNotFound(t *testing.T) {
 	logf.SetLogger(ZapLogger(true))

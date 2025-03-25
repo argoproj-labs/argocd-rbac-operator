@@ -25,6 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
 	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
@@ -88,108 +89,51 @@ func newConfigMap() *corev1.ConfigMap {
 }
 
 // reconcileRBACConfigMap will ensure that the ArgoCD RBAC ConfigMap is up-to-date.
-func (r *ArgoCDRoleReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMap, role *rbacoperatorv1alpha1.ArgoCDRole) error {
-	changed := false
-	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
-	roleName := fmt.Sprintf("role:%s", role.Name)
-
-	if cm.Data == nil {
-		cm.Data = make(map[string]string)
-	}
-
-	// Default Policy String
-	if cm.Data[common.ArgoCDKeyRBACPolicyCSV] != getDefaultRBACPolicy() {
-		cm.Data[common.ArgoCDKeyRBACPolicyCSV] = getDefaultRBACPolicy()
-		changed = true
-	}
-	// Policy OverlayKey CSV
-	if cm.Data[overlayKey] != buildPolicyStringRules(role, roleName) {
-		cm.Data[overlayKey] = buildPolicyStringRules(role, roleName)
-		changed = true
-	}
-
-	if changed {
-		return r.Client.Update(context.TODO(), cm)
-	}
-	return nil
-}
-
-// reconcileRBACConfigMapWithRoleBinding will ensure that the ArgoCD RBAC ConfigMap is up-to-date.
-func (r *ArgoCDRoleReconciler) reconcileRBACConfigMapWithRoleBinding(cm *corev1.ConfigMap, role *rbacoperatorv1alpha1.ArgoCDRole, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding) error {
-	changed := false
+func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMap(ctx context.Context, cm *corev1.ConfigMap, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role *rbacoperatorv1alpha1.ArgoCDRole) error {
 	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
 
-	if cm.Data == nil {
-		cm.Data = make(map[string]string)
-	}
+	// We'll only patch here. Operator has safegaurd with checking for existing ConfigMap
+	_, err := controllerutil.CreateOrPatch(ctx, r.Client, cm, func() error {
+		if cm.Data == nil {
+			cm.Data = make(map[string]string)
+		}
 
-	// Default Policy String
-	if cm.Data[common.ArgoCDKeyRBACPolicyCSV] != getDefaultRBACPolicy() {
-		cm.Data[common.ArgoCDKeyRBACPolicyCSV] = getDefaultRBACPolicy()
-		changed = true
-	}
-	// Policy OverlayKey CSV
-	if cm.Data[overlayKey] != getRBACPolicyCSV(role, rb) {
-		cm.Data[overlayKey] = getRBACPolicyCSV(role, rb)
-		changed = true
-	}
+		// Default Policy String
+		if cm.Data[common.ArgoCDKeyRBACPolicyCSV] != getDefaultRBACPolicy() {
+			cm.Data[common.ArgoCDKeyRBACPolicyCSV] = getDefaultRBACPolicy()
+		}
+		// Policy OverlayKey CSV
+		if cm.Data[overlayKey] != getRBACPolicyCSV(role, rb) {
+			cm.Data[overlayKey] = getRBACPolicyCSV(role, rb)
+		}
+		return nil
+	})
 
-	if changed {
-		return r.Client.Update(context.TODO(), cm)
-	}
-	return nil
+	return err
 }
 
 // reconcileRBACConfigMap will ensure that the ArgoCD RBAC ConfigMap is up-to-date.
-func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMap, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role *rbacoperatorv1alpha1.ArgoCDRole) error {
-	changed := false
+func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMapForBuiltInRole(ctx context.Context, cm *corev1.ConfigMap, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role *rbacoperatorv1alpha1.ArgoCDRole) error {
 	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
 
-	if cm.Data == nil {
-		cm.Data = make(map[string]string)
-	}
+	// We'll only patch here. Operator has safegaurd with checking for existing ConfigMap
+	_, err := controllerutil.CreateOrPatch(ctx, r.Client, cm, func() error {
+		if cm.Data == nil {
+			cm.Data = make(map[string]string)
+		}
 
-	// Default Policy String
-	if cm.Data[common.ArgoCDKeyRBACPolicyCSV] != getDefaultRBACPolicy() {
-		cm.Data[common.ArgoCDKeyRBACPolicyCSV] = getDefaultRBACPolicy()
-		changed = true
-	}
-	// Policy OverlayKey CSV
-	if cm.Data[overlayKey] != getRBACPolicyCSV(role, rb) {
-		cm.Data[overlayKey] = getRBACPolicyCSV(role, rb)
-		changed = true
-	}
+		// Default Policy String
+		if cm.Data[common.ArgoCDKeyRBACPolicyCSV] != getDefaultRBACPolicy() {
+			cm.Data[common.ArgoCDKeyRBACPolicyCSV] = getDefaultRBACPolicy()
+		}
+		// Policy OverlayKey CSV
+		if cm.Data[overlayKey] != buildPolicyStringSubjects(rb, role) {
+			cm.Data[overlayKey] = buildPolicyStringSubjects(rb, role)
+		}
+		return nil
+	})
 
-	if changed {
-		return r.Client.Update(context.TODO(), cm)
-	}
-	return nil
-}
-
-// reconcileRBACConfigMap will ensure that the ArgoCD RBAC ConfigMap is up-to-date.
-func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMapForBuiltInRole(cm *corev1.ConfigMap, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role *rbacoperatorv1alpha1.ArgoCDRole) error {
-	changed := false
-	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
-
-	if cm.Data == nil {
-		cm.Data = make(map[string]string)
-	}
-
-	// Default Policy String
-	if cm.Data[common.ArgoCDKeyRBACPolicyCSV] != getDefaultRBACPolicy() {
-		cm.Data[common.ArgoCDKeyRBACPolicyCSV] = getDefaultRBACPolicy()
-		changed = true
-	}
-	// Policy OverlayKey CSV
-	if cm.Data[overlayKey] != buildPolicyStringSubjects(rb, role) {
-		cm.Data[overlayKey] = buildPolicyStringSubjects(rb, role)
-		changed = true
-	}
-
-	if changed {
-		return r.Client.Update(context.TODO(), cm)
-	}
-	return nil
+	return err
 }
 
 // IsObjectFound will perform a basic check that the given object exists via the Kubernetes API.
