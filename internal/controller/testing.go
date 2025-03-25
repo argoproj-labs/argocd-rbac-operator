@@ -245,20 +245,6 @@ func makeTestRBACConfigMap_WithChangedPolicyCSV() *corev1.ConfigMap {
 	return cm
 }
 
-func makeTestCMArgoCDRoleExpected() *corev1.ConfigMap {
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      common.ArgoCDRBACConfigMapName,
-			Namespace: testRBACCMNamespace,
-		},
-		Data: map[string]string{
-			"policy.csv": "",
-			fmt.Sprintf("policy.%s.%s.csv", testNamespace, testRoleName): fmt.Sprintf("p, role:%s, applications, get, */*, allow\np, role:%s, applications, list, */*, allow\n", testRoleName, testRoleName),
-		},
-	}
-	return cm
-}
-
 func makeTestCM_ArgoCDRole_WithRoleBindingRoleSubject_Expected() *corev1.ConfigMap {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -336,19 +322,6 @@ func makeTestArgoCDNamespace() *corev1.Namespace {
 		},
 	}
 	return ns
-}
-
-func addFinalizerRole() argocdRoleOpt {
-	return func(r *rbacoperatorv1alpha1.ArgoCDRole) {
-		r.Finalizers = append(r.Finalizers, rbacoperatorv1alpha1.ArgoCDRoleFinalizerName)
-	}
-}
-
-func roleDeletedAt(now time.Time) argocdRoleOpt {
-	return func(r *rbacoperatorv1alpha1.ArgoCDRole) {
-		wrapped := metav1.NewTime(now)
-		r.ObjectMeta.DeletionTimestamp = &wrapped
-	}
 }
 
 func addFinalizerRoleBinding() argocdRoleBindingOpt {
