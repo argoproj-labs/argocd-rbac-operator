@@ -2,7 +2,7 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/argoproj-labs/argocd-rbac-operator)](https://goreportcard.com/report/github.com/argoproj-labs/argocd-rbac-operator)
 [![go.mod Go version](https://img.shields.io/github/go-mod/go-version/argoproj-labs/argocd-rbac-operator)](https://github.com/argoproj-labs/argocd-rbac-operator)
-[![GitHub Release](https://img.shields.io/github/v/release/argoproj-labs/argocd-rbac-operator)](https://github.com/argoproj-labs/argocd-rbac-operator/releases/tag/v0.1.6)
+[![GitHub Release](https://img.shields.io/github/v/release/argoproj-labs/argocd-rbac-operator)](https://github.com/argoproj-labs/argocd-rbac-operator/releases/tag/v0.1.7)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/argocd-rbac-operator)](https://artifacthub.io/packages/search?repo=argocd-rbac-operator)
 
 Kubernetes Operator for Argo CD RBAC Management.
