@@ -13,6 +13,58 @@ rules:
   - list
   - watch
 - apiGroups:
+  - rbac-operator
+  resources:
+  - argocdprojectrolebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac-operator
+  resources:
+  - argocdprojectrolebindings/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rbac-operator
+  resources:
+  - argocdprojectrolebindings/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac-operator
+  resources:
+  - argocdprojectroles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac-operator
+  resources:
+  - argocdprojectroles/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rbac-operator
+  resources:
+  - argocdprojectroles/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - rbac-operator.argoproj-labs.io
   resources:
   - argocdrolebindings

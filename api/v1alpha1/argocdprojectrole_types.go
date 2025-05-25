@@ -22,15 +22,17 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// ArgoCDRoleSpec defines the desired state of global scoped Role (written to argocd-rbac-cm ConfigMap)
-type ArgoCDRoleSpec struct {
-	Rules []GlobalRule `json:"rules"`
+// ArgoCDProjectRoleSpec defines the desired state of an AppProject scoped Role (patched to binded AppProject).
+type ArgoCDProjectRoleSpec struct {
+	// Description of the role.
+	Description string        `json:"description"`
+	Rules       []ProjectRule `json:"rules"`
 }
 
 // Rules define the desired set of permissions.
-type GlobalRule struct {
-	// +kubebuilder:validation:Enum=clusters;projects;applications;applicationsets;repositories;certificates;accounts;gpgkeys;logs;exec;extensions
-	// +kubebuilder:validation:example=clusters
+type ProjectRule struct {
+	// +kubebuilder:validation:Enum=clusters;applications;repositories;logs;exec;projects
+	// +kubebuilder:validation:example=applications
 	// Target resource type.
 	Resource string `json:"resource"`
 	// Verbs define the operations that are being performed on the resource.
@@ -39,10 +41,10 @@ type GlobalRule struct {
 	Objects []string `json:"objects"`
 }
 
-// ArgoCDRoleStatus defines the observed state of Role
-type ArgoCDRoleStatus struct {
-	// argocdRoleBindingRef defines the reference to the ArgoCDRoleBinding Resource.
-	ArgoCDRoleBindingRef string `json:"argocdRoleBindingRef,omitempty"`
+// ArgoCDProjectRoleStatus defines the observed state of ArgoCDProjectRole.
+type ArgoCDProjectRoleStatus struct {
+	// argocdProjectRoleBindingRef defines the reference to the ArgoCDProjectRoleBinding Resource.
+	ArgoCDProjectRoleBindingRef string `json:"argocdProjectRoleBindingRef,omitempty"`
 	// +listType=map
 	// +listMapKey=type
 	// Conditions defines the list of conditions.
@@ -53,35 +55,35 @@ type ArgoCDRoleStatus struct {
 // +kubebuilder:subresource:status
 // +genclient
 
-// ArgoCDRole is the Schema for the roles API
-type ArgoCDRole struct {
+// ArgoCDProjectRole is the Schema for the argocdprojectroles API.
+type ArgoCDProjectRole struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ArgoCDRoleSpec   `json:"spec,omitempty"`
-	Status ArgoCDRoleStatus `json:"status,omitempty"`
+	Spec   ArgoCDProjectRoleSpec   `json:"spec,omitempty"`
+	Status ArgoCDProjectRoleStatus `json:"status,omitempty"`
 }
 
 // IsBeingDeleted returns true if a deletion timestamp is set
-func (r *ArgoCDRole) IsBeingDeleted() bool {
+func (r *ArgoCDProjectRole) IsBeingDeleted() bool {
 	return !r.ObjectMeta.DeletionTimestamp.IsZero()
 }
 
 // ArgoCDRoleFinalizerName is the name of the finalizer used to delete the Role
-const ArgoCDRoleFinalizerName = "rbac-operator.argoproj-labs.io/finalizer"
+const ArgoCDProjectRoleFinalizerName = "rbac-operator.argoproj-labs.io/finalizer"
 
 // HasFinalizer returns true if the Role has the finalizer
-func (r *ArgoCDRole) HasFinalizer(finalizerName string) bool {
+func (r *ArgoCDProjectRole) HasFinalizer(finalizerName string) bool {
 	return slices.Contains(r.ObjectMeta.Finalizers, finalizerName)
 }
 
 // AddFinalizer adds the finalizer to the Role
-func (r *ArgoCDRole) AddFinalizer(finalizerName string) {
+func (r *ArgoCDProjectRole) AddFinalizer(finalizerName string) {
 	r.ObjectMeta.Finalizers = append(r.ObjectMeta.Finalizers, finalizerName)
 }
 
 // RemoveFinalizer removes the finalizer from the Role
-func (r *ArgoCDRole) RemoveFinalizer(finalizerName string) {
+func (r *ArgoCDProjectRole) RemoveFinalizer(finalizerName string) {
 	r.ObjectMeta.Finalizers = slices.DeleteFunc(r.ObjectMeta.Finalizers, func(s string) bool {
 		return s == finalizerName
 	})
@@ -89,13 +91,13 @@ func (r *ArgoCDRole) RemoveFinalizer(finalizerName string) {
 
 // +kubebuilder:object:root=true
 
-// ArgoCDRoleList contains a list of Role
-type ArgoCDRoleList struct {
+// ArgoCDProjectRoleList contains a list of ArgoCDProjectRole.
+type ArgoCDProjectRoleList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []ArgoCDRole `json:"items"`
+	Items           []ArgoCDProjectRole `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&ArgoCDRole{}, &ArgoCDRoleList{})
+	SchemeBuilder.Register(&ArgoCDProjectRole{}, &ArgoCDProjectRoleList{})
 }

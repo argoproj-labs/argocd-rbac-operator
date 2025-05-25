@@ -4,20 +4,21 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.15.0
-  name: argocdroles.rbac-operator.argoproj-labs.io
+  name: argocdprojectrolebindings.rbac-operator.argoproj-labs.io
 spec:
   group: rbac-operator.argoproj-labs.io
   names:
-    kind: ArgoCDRole
-    listKind: ArgoCDRoleList
-    plural: argocdroles
-    singular: argocdrole
+    kind: ArgoCDProjectRoleBinding
+    listKind: ArgoCDProjectRoleBindingList
+    plural: argocdprojectrolebindings
+    singular: argocdprojectrolebinding
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ArgoCDRole is the Schema for the roles API
+        description: ArgoCDProjectRoleBinding is the Schema for the argocdprojectrolebindings
+          API.
         properties:
           apiVersion:
             description: |-
@@ -37,56 +38,47 @@ spec:
           metadata:
             type: object
           spec:
-            description: ArgoCDRoleSpec defines the desired state of global scoped
-              Role (written to argocd-rbac-cm ConfigMap)
+            description: ArgoCDProjectRoleBindingSpec defines the desired state of
+              ArgoCDProjectRoleBinding.
             properties:
-              rules:
+              argocdProjectRoleRef:
+                description: ArgocdProjectRoleRef defines the reference to the role
+                  being granted.
+                properties:
+                  name:
+                    description: Name of the ArgoCDProjectRole. Should not start with
+                      "role:"
+                    type: string
+                required:
+                - name
+                type: object
+              subjects:
+                description: List of subjects being bound to ArgoCDProjectRole (argocdProjectRoleRef).
                 items:
-                  description: Rules define the desired set of permissions.
+                  description: AppProjectSubject defines the subject being bound to
+                    an AppProject scoped ArgoCDRole.
                   properties:
-                    objects:
-                      description: List of resource's objects the permissions are
-                        granted for.
-                      items:
-                        type: string
-                      type: array
-                    resource:
-                      description: Target resource type.
-                      enum:
-                      - clusters
-                      - projects
-                      - applications
-                      - applicationsets
-                      - repositories
-                      - certificates
-                      - accounts
-                      - gpgkeys
-                      - logs
-                      - exec
-                      - extensions
+                    appProjectRef:
+                      description: Reference to the AppProject the ArgoCDRole is bound
+                        to.
                       type: string
-                    verbs:
-                      description: Verbs define the operations that are being performed
-                        on the resource.
+                    groups:
+                      description: List of groups the role will be granted to.
                       items:
                         type: string
                       type: array
                   required:
-                  - objects
-                  - resource
-                  - verbs
+                  - appProjectRef
+                  - groups
                   type: object
                 type: array
             required:
-            - rules
+            - argocdProjectRoleRef
             type: object
           status:
-            description: ArgoCDRoleStatus defines the observed state of Role
+            description: ArgoCDProjectRoleBindingStatus defines the observed state
+              of ArgoCDProjectRoleBinding.
             properties:
-              argocdRoleBindingRef:
-                description: argocdRoleBindingRef defines the reference to the ArgoCDRoleBinding
-                  Resource.
-                type: string
               conditions:
                 description: Conditions defines the list of conditions.
                 items:
