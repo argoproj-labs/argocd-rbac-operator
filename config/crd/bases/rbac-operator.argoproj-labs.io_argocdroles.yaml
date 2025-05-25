@@ -37,7 +37,8 @@ spec:
           metadata:
             type: object
           spec:
-            description: ArgoCDRoleSpec defines the desired state of Role
+            description: ArgoCDRoleSpec defines the desired state of global scoped
+              Role (written to argocd-rbac-cm ConfigMap)
             properties:
               rules:
                 items:

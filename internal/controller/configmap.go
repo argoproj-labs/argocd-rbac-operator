@@ -212,7 +212,7 @@ func (r *ArgoCDRoleBindingReconciler) createBuiltInAdminRole() *rbacoperatorv1al
 			Namespace: r.ArgoCDRBACConfigMapNamespace,
 		},
 		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
-			Rules: []rbacoperatorv1alpha1.Rule{
+			Rules: []rbacoperatorv1alpha1.GlobalRule{
 				{
 					Resource: "applications",
 					Verbs:    []string{"override", "sync", "create", "update", "delete", "action", "get"},
@@ -276,7 +276,7 @@ func (r *ArgoCDRoleBindingReconciler) createBuiltInReadOnlyRole() *rbacoperatorv
 			Namespace: r.ArgoCDRBACConfigMapNamespace,
 		},
 		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
-			Rules: []rbacoperatorv1alpha1.Rule{
+			Rules: []rbacoperatorv1alpha1.GlobalRule{
 				{
 					Resource: "applications",
 					Verbs:    []string{"get"},
