@@ -22,7 +22,6 @@ import (
 	"time"
 
 	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
-	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -63,7 +62,7 @@ func TestArgoCDRoleBindingReconciler_ReconcileRoleSubject(t *testing.T) {
 	}
 
 	cm := &corev1.ConfigMap{}
-	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: common.ArgoCDRBACConfigMapName, Namespace: testRBACCMNamespace}, cm)
+	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: testRBACCMName, Namespace: testRBACCMNamespace}, cm)
 	assert.NoError(t, err)
 	resCM := makeTestCM_ArgoCDRole_WithRoleBindingRoleSubject_Expected()
 	assert.Equal(t, resCM.Data, cm.Data)
@@ -198,7 +197,7 @@ func TestArgoCDRoleBindingReconciler_HandleFinalizer(t *testing.T) {
 	}
 
 	cm := &corev1.ConfigMap{}
-	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: common.ArgoCDRBACConfigMapName, Namespace: testRBACCMNamespace}, cm)
+	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: testRBACCMName, Namespace: testRBACCMNamespace}, cm)
 	assert.NoError(t, err)
 	wantCM := makeTestCMArgoCDRoleExpected()
 	assert.Equal(t, wantCM.Data, cm.Data)
@@ -262,7 +261,7 @@ func TestArgoCDRoleBindingReconciler_ReconcileSSOSubject(t *testing.T) {
 	}
 
 	cm := &corev1.ConfigMap{}
-	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: common.ArgoCDRBACConfigMapName, Namespace: testRBACCMNamespace}, cm)
+	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: testRBACCMName, Namespace: testRBACCMNamespace}, cm)
 	assert.NoError(t, err)
 	resCM := makeTestCM_ArgoCDRole_WithRoleBindingSSOSubject_Expected()
 	assert.Equal(t, resCM.Data, cm.Data)
@@ -297,7 +296,7 @@ func TestArgoCDRoleBindingReconciler_ReconcileLocalSubject(t *testing.T) {
 	}
 
 	cm := &corev1.ConfigMap{}
-	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: common.ArgoCDRBACConfigMapName, Namespace: testRBACCMNamespace}, cm)
+	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: testRBACCMName, Namespace: testRBACCMNamespace}, cm)
 	assert.NoError(t, err)
 	resCM := makeTestCM_ArgoCDRole_WithRoleBindingLocalSubject_Expected()
 	assert.Equal(t, resCM.Data, cm.Data)
@@ -331,7 +330,7 @@ func TestArgoCDRoleBindingReconciler_ReconcileBuiltInAdmin(t *testing.T) {
 	}
 
 	cm := &corev1.ConfigMap{}
-	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: common.ArgoCDRBACConfigMapName, Namespace: testRBACCMNamespace}, cm)
+	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: testRBACCMName, Namespace: testRBACCMNamespace}, cm)
 	assert.NoError(t, err)
 	resCM := makeTestCM_BuiltInAdmin_WithRoleBinding_Expected()
 	assert.Equal(t, resCM.Data, cm.Data)
@@ -365,7 +364,7 @@ func TestArgoCDRoleBindingReconciler_ReconcileBuiltInReadOnly(t *testing.T) {
 	}
 
 	cm := &corev1.ConfigMap{}
-	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: common.ArgoCDRBACConfigMapName, Namespace: testRBACCMNamespace}, cm)
+	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: testRBACCMName, Namespace: testRBACCMNamespace}, cm)
 	assert.NoError(t, err)
 	resCM := makeTestCM_BuiltInReadOnly_WithRoleBinding_Expected()
 	assert.Equal(t, resCM.Data, cm.Data)
@@ -399,7 +398,7 @@ func TestArgoCDRoleBindingReconciler_HandleFinalizerBuiltInRole(t *testing.T) {
 	}
 
 	cm := &corev1.ConfigMap{}
-	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: common.ArgoCDRBACConfigMapName, Namespace: testRBACCMNamespace}, cm)
+	err = reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: testRBACCMName, Namespace: testRBACCMNamespace}, cm)
 	assert.NoError(t, err)
 	resCM := makeTestRBACConfigMap()
 	assert.Equal(t, resCM.Data, cm.Data)

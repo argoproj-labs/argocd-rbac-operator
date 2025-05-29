@@ -30,6 +30,27 @@ import (
 	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 )
 
+type rbacConfigmapReconciler interface {
+	getRBACConfigmapName() string
+	getRBACConfigmapNamespace() string
+}
+
+func (r *ArgoCDRoleBindingReconciler) getRBACConfigmapName() string {
+	return r.ArgoCDRBACConfigMapName
+}
+
+func (r *ArgoCDRoleBindingReconciler) getRBACConfigmapNamespace() string {
+	return r.ArgoCDRBACConfigMapNamespace
+}
+
+func (r *ArgoCDRoleReconciler) getRBACConfigmapName() string {
+	return r.ArgoCDRBACConfigMapName
+}
+
+func (r *ArgoCDRoleReconciler) getRBACConfigmapNamespace() string {
+	return r.ArgoCDRBACConfigMapNamespace
+}
+
 // getRBACDefaultPolicyCSV will return the Argo CD RBAC default policy CSV.
 func getDefaultRBACPolicy() string {
 	return common.ArgoCDDefaultRBACPolicy
@@ -78,11 +99,11 @@ func buildPolicyStringSubjects(rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role 
 }
 
 // newConfigMap will return a new ConfigMap resource.
-func newConfigMap() *corev1.ConfigMap {
+func newConfigMap[R rbacConfigmapReconciler](r R) *corev1.ConfigMap {
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      common.ArgoCDRBACConfigMapName,
-			Namespace: common.ArgoCDRBACConfigMapNamespace,
+			Name:      r.getRBACConfigmapName(),
+			Namespace: r.getRBACConfigmapNamespace(),
 		},
 	}
 }
@@ -205,11 +226,11 @@ func FetchObject(client client.Client, namespace string, name string, obj client
 }
 
 // createBuiltInAdminRole will return a new built-in ArgoCDRole with admin permissions.
-func createBuiltInAdminRole() *rbacoperatorv1alpha1.ArgoCDRole {
+func (r *ArgoCDRoleBindingReconciler) createBuiltInAdminRole() *rbacoperatorv1alpha1.ArgoCDRole {
 	return &rbacoperatorv1alpha1.ArgoCDRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      common.ArgoCDRoleAdmin,
-			Namespace: common.ArgoCDRBACConfigMapNamespace,
+			Namespace: r.getRBACConfigmapNamespace(),
 		},
 		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
 			Rules: []rbacoperatorv1alpha1.Rule{
@@ -269,11 +290,11 @@ func createBuiltInAdminRole() *rbacoperatorv1alpha1.ArgoCDRole {
 }
 
 // createBuiltInReadOnlyRole will return a new built-in ArgoCDRole with read-only permissions.
-func createBuiltInReadOnlyRole() *rbacoperatorv1alpha1.ArgoCDRole {
+func (r *ArgoCDRoleBindingReconciler) createBuiltInReadOnlyRole() *rbacoperatorv1alpha1.ArgoCDRole {
 	return &rbacoperatorv1alpha1.ArgoCDRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      common.ArgoCDRoleReadOnly,
-			Namespace: common.ArgoCDRBACConfigMapNamespace,
+			Namespace: r.getRBACConfigmapNamespace(),
 		},
 		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
 			Rules: []rbacoperatorv1alpha1.Rule{

@@ -45,7 +45,7 @@ func (r *ArgoCDRoleReconciler) handleFinalizer(ctx context.Context, role *rbacop
 }
 
 func (r *ArgoCDRoleReconciler) delete(role *rbacoperatorv1alpha1.ArgoCDRole) error {
-	cm := newConfigMap()
+	cm := newConfigMap(r)
 	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.ObjectMeta.Name)
 	if IsObjectFound(r.Client, cm.Namespace, cm.Name, cm) {
 		delete(cm.Data, overlayKey)
@@ -78,7 +78,7 @@ func (r *ArgoCDRoleBindingReconciler) handleFinalizer(ctx context.Context, rb *r
 func (r *ArgoCDRoleBindingReconciler) delete(rb *rbacoperatorv1alpha1.ArgoCDRoleBinding) error {
 	roleRefName := rb.Spec.ArgoCDRoleRef.Name
 	if roleRefName == common.ArgoCDRoleAdmin || roleRefName == common.ArgoCDRoleReadOnly {
-		cm := newConfigMap()
+		cm := newConfigMap(r)
 		overlayKey := fmt.Sprintf("policy.%s.%s.csv", rb.Namespace, roleRefName)
 		if IsObjectFound(r.Client, cm.Namespace, cm.Name, cm) {
 			delete(cm.Data, overlayKey)
