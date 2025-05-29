@@ -156,7 +156,7 @@ To change the policy.csv you have to make changes in the `internal/controller/co
 
 ### Deployment types
 
-As for now only single Argo CD deployment type is supported. The default Argo CD namespace is defined as `argocd`, to change that you have to make a change in `internal/controller/common/values.go`.
+As for now only single Argo CD deployment type is supported. The default Argo CD namespace is defined as `argocd`, to change that you have to provide a flag --argocd-rbac-cm-namespace="your-argocd-namespace".
 
 ## Roadmap
 
