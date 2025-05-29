@@ -97,7 +97,7 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, nil
 	}
 
-	cm := newConfigMap(r)
+	cm := newConfigMap(r.ArgoCDRBACConfigMapName, r.ArgoCDRBACConfigMapNamespace)
 
 	r.Log.Info("Checking if ConfigMap exists")
 	if !IsObjectFound(r.Client, cm.Namespace, cm.Name, cm) {

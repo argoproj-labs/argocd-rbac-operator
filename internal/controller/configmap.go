@@ -30,27 +30,6 @@ import (
 	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 )
 
-type rbacConfigmapReconciler interface {
-	getRBACConfigmapName() string
-	getRBACConfigmapNamespace() string
-}
-
-func (r *ArgoCDRoleBindingReconciler) getRBACConfigmapName() string {
-	return r.ArgoCDRBACConfigMapName
-}
-
-func (r *ArgoCDRoleBindingReconciler) getRBACConfigmapNamespace() string {
-	return r.ArgoCDRBACConfigMapNamespace
-}
-
-func (r *ArgoCDRoleReconciler) getRBACConfigmapName() string {
-	return r.ArgoCDRBACConfigMapName
-}
-
-func (r *ArgoCDRoleReconciler) getRBACConfigmapNamespace() string {
-	return r.ArgoCDRBACConfigMapNamespace
-}
-
 // getRBACDefaultPolicyCSV will return the Argo CD RBAC default policy CSV.
 func getDefaultRBACPolicy() string {
 	return common.ArgoCDDefaultRBACPolicy
@@ -99,11 +78,11 @@ func buildPolicyStringSubjects(rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role 
 }
 
 // newConfigMap will return a new ConfigMap resource.
-func newConfigMap[R rbacConfigmapReconciler](r R) *corev1.ConfigMap {
+func newConfigMap(name, namespace string) *corev1.ConfigMap {
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      r.getRBACConfigmapName(),
-			Namespace: r.getRBACConfigmapNamespace(),
+			Name:      name,
+			Namespace: namespace,
 		},
 	}
 }
@@ -230,7 +209,7 @@ func (r *ArgoCDRoleBindingReconciler) createBuiltInAdminRole() *rbacoperatorv1al
 	return &rbacoperatorv1alpha1.ArgoCDRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      common.ArgoCDRoleAdmin,
-			Namespace: r.getRBACConfigmapNamespace(),
+			Namespace: r.ArgoCDRBACConfigMapNamespace,
 		},
 		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
 			Rules: []rbacoperatorv1alpha1.Rule{
@@ -294,7 +273,7 @@ func (r *ArgoCDRoleBindingReconciler) createBuiltInReadOnlyRole() *rbacoperatorv
 	return &rbacoperatorv1alpha1.ArgoCDRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      common.ArgoCDRoleReadOnly,
-			Namespace: r.getRBACConfigmapNamespace(),
+			Namespace: r.ArgoCDRBACConfigMapNamespace,
 		},
 		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
 			Rules: []rbacoperatorv1alpha1.Rule{
