@@ -77,6 +77,10 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	if rb.IsBeingDeleted() {
 		if err := r.handleFinalizer(ctx, &rb); err != nil {
+			if errors.IsConflict(err) {
+				r.Log.Info("Conflict while handling finalizer, requeuing ArgoCDRoleBinding %s", req.Name)
+				return ctrl.Result{RequeueAfter: time.Second}, nil
+			}
 			rb.SetConditions(rbacoperatorv1alpha1.Deleting().WithMessage(err.Error()))
 			if err := r.Client.Status().Update(ctx, &rb); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDRoleBinding %s status", req.Name)
@@ -164,6 +168,10 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	r.Log.Info("Reconciling RBAC ConfigMap")
 	if err := r.reconcileRBACConfigMapForBuiltInRole(cm, &rb, role); err != nil {
+		if errors.IsConflict(err) {
+			r.Log.Info("Conflict while reconciling RBAC ConfigMap, requeuing ArgoCDRoleBinding %s", req.Name)
+			return ctrl.Result{RequeueAfter: time.Second}, nil
+		}
 		rb.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 		if err := r.Client.Status().Update(ctx, &rb); err != nil {
 			r.Log.Error(err, "Failed to update ArgoCDRoleBinding %s status", req.Name)
