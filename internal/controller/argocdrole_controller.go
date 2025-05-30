@@ -79,6 +79,10 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	if role.IsBeingDeleted() {
 		if err := r.handleFinalizer(ctx, &role); err != nil {
+			if errors.IsConflict(err) {
+				r.Log.Info("Conflict while handling finalizer for ArgoCDRole %s, requeuing", req.Name)
+				return ctrl.Result{Requeue: true, RequeueAfter: time.Second}, nil
+			}
 			role.SetConditions(rbacoperatorv1alpha1.Deleting().WithMessage(err.Error()))
 			if err := r.Client.Status().Update(ctx, &role); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDRole %s status", req.Name)
@@ -146,6 +150,10 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	r.Log.Info("Reconciling RBAC ConfigMap")
 	if err := r.reconcileRBACConfigMap(cm, &role); err != nil {
+		if errors.IsConflict(err) {
+			r.Log.Info("Conflict while reconciling RBAC ConfigMap, requeuing ArgoCDRole %s", req.Name)
+			return ctrl.Result{RequeueAfter: time.Second}, nil
+		}
 		role.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 		if err := r.Client.Status().Update(ctx, &role); err != nil {
 			r.Log.Error(err, "Failed to update ArgoCDRole %s status", req.Name)
