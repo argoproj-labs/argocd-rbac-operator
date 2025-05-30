@@ -113,10 +113,12 @@ metadata:
 ### Delete
 
 To delete a Role you can use `kubectl`
-```
+
+```bash
 kubectl delete argocdrole.rbac-operator.argoproj-labs.io/test-role
 kubectl delete argocdrolebinding.rbac-operator.argoproj-labs.io/test-role-binding
 ```
+
 After the Resource is deleted, the policy string will be also deleted from the RBAC-CM.
 
 ### Change the Policy.CSV
