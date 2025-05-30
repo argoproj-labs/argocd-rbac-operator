@@ -55,8 +55,8 @@ func TestArgoCDRoleReconciler_Reconcile(t *testing.T) {
 
 	res, err := reconciler.Reconcile(context.TODO(), req)
 	assert.NoError(t, err)
-	if res.Requeue {
-		t.Fatal("reconcile requeued request")
+	if res.RequeueAfter < 10*time.Minute {
+		t.Fatalf("reconcile requeued request after %s", res.RequeueAfter)
 	}
 
 	cm := &corev1.ConfigMap{}
@@ -89,8 +89,8 @@ func TestArgoCDRoleReconciler_AddFinalizer(t *testing.T) {
 
 	res, err := reconciler.Reconcile(context.TODO(), req)
 	assert.NoError(t, err)
-	if res.Requeue {
-		t.Fatal("reconcile requeued request")
+	if res.RequeueAfter > 0 {
+		t.Fatalf("reconcile requeued request after %s", res.RequeueAfter)
 	}
 
 	argocdRoleRes := &rbacoperatorv1alpha1.ArgoCDRole{}
@@ -121,8 +121,8 @@ func TestArgoCDRoleReconciler_RoleNotFound(t *testing.T) {
 
 	res, err := reconciler.Reconcile(context.TODO(), req)
 	assert.NoError(t, err)
-	if res.Requeue {
-		t.Fatal("reconcile requeued request")
+	if res.RequeueAfter > 0 {
+		t.Fatalf("reconcile requeued request after %s", res.RequeueAfter)
 	}
 	assert.Error(t, reconciler.Client.Get(context.TODO(), types.NamespacedName{Name: testRoleName, Namespace: testNamespace}, &rbacoperatorv1alpha1.ArgoCDRole{}))
 }
@@ -149,7 +149,7 @@ func TestArgoCDRoleReconciler_CMNotFound(t *testing.T) {
 
 	res, err := reconciler.Reconcile(context.TODO(), req)
 	assert.Error(t, err)
-	assert.True(t, res.Requeue)
+	assert.True(t, res.RequeueAfter > 0, "expected requeue after to be greater than 0")
 }
 
 func TestArgoCDRoleReconciler_HandleFinalizer(t *testing.T) {
@@ -175,8 +175,8 @@ func TestArgoCDRoleReconciler_HandleFinalizer(t *testing.T) {
 
 	res, err := reconciler.Reconcile(context.TODO(), req)
 	assert.NoError(t, err)
-	if res.Requeue {
-		t.Fatal("reconcile requeued request")
+	if res.RequeueAfter > 0 {
+		t.Fatalf("reconcile requeued request after %s", res.RequeueAfter)
 	}
 
 	cm := &corev1.ConfigMap{}
@@ -211,8 +211,8 @@ func TestArgoCDRoleReconciler_RoleHasRoleBinding(t *testing.T) {
 
 	res, err := reconciler.Reconcile(context.TODO(), req)
 	assert.NoError(t, err)
-	if res.Requeue {
-		t.Fatal("reconcile requeued request")
+	if res.RequeueAfter < 10*time.Minute {
+		t.Fatalf("reconcile requeued request after %s", res.RequeueAfter)
 	}
 
 	cm := &corev1.ConfigMap{}
@@ -246,7 +246,7 @@ func TestArgoCDRoleReconciler_RoleBindingObjectMissing(t *testing.T) {
 
 	res, err := reconciler.Reconcile(context.TODO(), req)
 	assert.Error(t, err)
-	if res.Requeue {
-		t.Fatal("reconcile requeued request")
+	if res.RequeueAfter > 0 {
+		t.Fatalf("reconcile requeued request after %s", res.RequeueAfter)
 	}
 }

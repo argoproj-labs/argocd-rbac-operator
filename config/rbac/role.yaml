@@ -16,33 +16,14 @@ rules:
   - rbac-operator.argoproj-labs.io
   resources:
   - argocdrolebindings
+  - argocdroles
   verbs:
   - '*'
-  - get
-  - list
 - apiGroups:
   - rbac-operator.argoproj-labs.io
   resources:
   - argocdrolebindings/finalizers
-  verbs:
-  - '*'
-- apiGroups:
-  - rbac-operator.argoproj-labs.io
-  resources:
   - argocdrolebindings/status
-  verbs:
-  - '*'
-- apiGroups:
-  - rbac-operator.argoproj-labs.io
-  resources:
-  - argocdroles
-  verbs:
-  - '*'
-  - get
-  - list
-- apiGroups:
-  - rbac-operator.argoproj-labs.io
-  resources:
   - argocdroles/finalizers
   verbs:
   - '*'
@@ -52,6 +33,3 @@ rules:
   - argocdroles/status
   verbs:
   - '*'
-  - get
-  - patch
-  - update

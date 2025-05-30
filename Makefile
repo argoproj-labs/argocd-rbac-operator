@@ -1,6 +1,6 @@
 # VERSION defines the project version for the bundle.
 # Update this value when you upgrade the version of your project.
-VERSION ?= 0.1.7
+VERSION ?= 0.1.8
 
 # Try to detect Docker or Podman
 CONTAINER_TOOL := $(shell command -v docker 2> /dev/null)
@@ -171,10 +171,10 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest-$(ENVTEST_VERSION)
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
 
 ## Tool Versions
-KUSTOMIZE_VERSION ?= v5.4.1
-CONTROLLER_TOOLS_VERSION ?= v0.15.0
+KUSTOMIZE_VERSION ?= v5.6.0
+CONTROLLER_TOOLS_VERSION ?= v0.18.0
 ENVTEST_VERSION ?= release-0.18
-GOLANGCI_LINT_VERSION ?= v1.57.2
+GOLANGCI_LINT_VERSION ?= v1.64.8
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.

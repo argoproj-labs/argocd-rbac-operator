@@ -21,7 +21,6 @@ linters:
   enable:
     - dupl
     - errcheck
-    - exportloopref
     - ginkgolinter
     - goconst
     - gocyclo

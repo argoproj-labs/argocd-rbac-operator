@@ -2,7 +2,7 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/argoproj-labs/argocd-rbac-operator)](https://goreportcard.com/report/github.com/argoproj-labs/argocd-rbac-operator)
 [![go.mod Go version](https://img.shields.io/github/go-mod/go-version/argoproj-labs/argocd-rbac-operator)](https://github.com/argoproj-labs/argocd-rbac-operator)
-[![GitHub Release](https://img.shields.io/github/v/release/argoproj-labs/argocd-rbac-operator)](https://github.com/argoproj-labs/argocd-rbac-operator/releases/tag/v0.1.7)
+[![GitHub Release](https://img.shields.io/github/v/release/argoproj-labs/argocd-rbac-operator)](https://github.com/argoproj-labs/argocd-rbac-operator/releases/tag/v0.1.8)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/argocd-rbac-operator)](https://artifacthub.io/packages/search?repo=argocd-rbac-operator)
 
 Kubernetes Operator for Argo CD RBAC Management.
@@ -144,10 +144,12 @@ metadata:
 ### Delete
 
 To delete a Role you can use `kubectl`
-```
+
+```bash
 kubectl delete argocdrole.rbac-operator.argoproj-labs.io/test-role
 kubectl delete argocdrolebinding.rbac-operator.argoproj-labs.io/test-role-binding
 ```
+
 After the Resource is deleted, the policy string will be also deleted from the RBAC-CM.
 
 ### Change the Policy.CSV
