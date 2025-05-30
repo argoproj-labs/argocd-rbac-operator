@@ -16,11 +16,11 @@ argocd:
   cmName: argocd-rbac-cm
 
 # Specify the Operator container image to use for the deployment.
-# For example, the following sets the image to the ``quay.io/argoprojlabs/argocd-rbac-operator`` repo and the v0.1.6 tag.
+# For example, the following sets the image to the ``quay.io/argoprojlabs/argocd-rbac-operator`` repo and the v0.1.8 tag.
 # The container pulls the image if not already present
 image:
   repository: quay.io/argoprojlabs/argocd-rbac-operator
-  tag: v0.1.6
+  tag: v0.1.8
   pullPolicy: IfNotPresent
 
 # An array of additional annotations to be applied to the operator service account
