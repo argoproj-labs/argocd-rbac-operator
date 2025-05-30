@@ -59,6 +59,8 @@ spec:
         args:
           - --leader-elect
           - --health-probe-bind-address=:8081
+          - --argocd-rbac-cm-name=argocd-rbac-cm
+          - --argocd-rbac-cm-namespace=argocd
         image: controller:latest
         name: rbac-operator
         securityContext:

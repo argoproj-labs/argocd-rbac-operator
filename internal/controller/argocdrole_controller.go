@@ -38,8 +38,10 @@ var _ reconcile.Reconciler = &ArgoCDRoleReconciler{}
 // ArgoCDRoleReconciler reconciles a Role object
 type ArgoCDRoleReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log                          logr.Logger
+	Scheme                       *runtime.Scheme
+	ArgoCDRBACConfigMapName      string
+	ArgoCDRBACConfigMapNamespace string
 }
 
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdroles,verbs=*
@@ -97,7 +99,7 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, nil
 	}
 
-	cm := newConfigMap()
+	cm := newConfigMap(r.ArgoCDRBACConfigMapName, r.ArgoCDRBACConfigMapNamespace)
 
 	r.Log.Info("Checking if ConfigMap exists")
 	if !IsObjectFound(r.Client, cm.Namespace, cm.Name, cm) {

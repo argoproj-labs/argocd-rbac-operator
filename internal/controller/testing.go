@@ -37,6 +37,7 @@ import (
 const (
 	testNamespace       = "default"
 	testRBACCMNamespace = "argocd"
+	testRBACCMName      = "argocd-rbac-cm"
 
 	testRoleName        = "test-role"
 	testRoleBindingName = "test-role-binding"
@@ -50,15 +51,19 @@ type SchemeOpt func(*runtime.Scheme) error
 
 func makeTestArgoCDRoleReconciler(client client.Client, sch *runtime.Scheme) *ArgoCDRoleReconciler {
 	return &ArgoCDRoleReconciler{
-		Client: client,
-		Scheme: sch,
+		Client:                       client,
+		Scheme:                       sch,
+		ArgoCDRBACConfigMapName:      testRBACCMName,
+		ArgoCDRBACConfigMapNamespace: testRBACCMNamespace,
 	}
 }
 
 func makeTestArgoCDRoleBindingReconciler(client client.Client, sch *runtime.Scheme) *ArgoCDRoleBindingReconciler {
 	return &ArgoCDRoleBindingReconciler{
-		Client: client,
-		Scheme: sch,
+		Client:                       client,
+		Scheme:                       sch,
+		ArgoCDRBACConfigMapName:      testRBACCMName,
+		ArgoCDRBACConfigMapNamespace: testRBACCMNamespace,
 	}
 }
 
@@ -230,7 +235,7 @@ func makeTestRoleBindingForBuiltInReadOnly(opts ...argocdRoleBindingOpt) *rbacop
 func makeTestRBACConfigMap() *corev1.ConfigMap {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      common.ArgoCDRBACConfigMapName,
+			Name:      testRBACCMName,
 			Namespace: testRBACCMNamespace,
 		},
 		Data: map[string]string{
@@ -243,7 +248,7 @@ func makeTestRBACConfigMap() *corev1.ConfigMap {
 func makeTestRBACConfigMap_WithChangedPolicyCSV() *corev1.ConfigMap {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      common.ArgoCDRBACConfigMapName,
+			Name:      testRBACCMName,
 			Namespace: testRBACCMNamespace,
 		},
 		Data: map[string]string{
@@ -256,7 +261,7 @@ func makeTestRBACConfigMap_WithChangedPolicyCSV() *corev1.ConfigMap {
 func makeTestCMArgoCDRoleExpected() *corev1.ConfigMap {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      common.ArgoCDRBACConfigMapName,
+			Name:      testRBACCMName,
 			Namespace: testRBACCMNamespace,
 		},
 		Data: map[string]string{
@@ -270,7 +275,7 @@ func makeTestCMArgoCDRoleExpected() *corev1.ConfigMap {
 func makeTestCM_ArgoCDRole_WithRoleBindingRoleSubject_Expected() *corev1.ConfigMap {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      common.ArgoCDRBACConfigMapName,
+			Name:      testRBACCMName,
 			Namespace: testRBACCMNamespace,
 		},
 		Data: map[string]string{
@@ -284,7 +289,7 @@ func makeTestCM_ArgoCDRole_WithRoleBindingRoleSubject_Expected() *corev1.ConfigM
 func makeTestCM_ArgoCDRole_WithRoleBindingSSOSubject_Expected() *corev1.ConfigMap {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      common.ArgoCDRBACConfigMapName,
+			Name:      testRBACCMName,
 			Namespace: testRBACCMNamespace,
 		},
 		Data: map[string]string{
@@ -298,7 +303,7 @@ func makeTestCM_ArgoCDRole_WithRoleBindingSSOSubject_Expected() *corev1.ConfigMa
 func makeTestCM_ArgoCDRole_WithRoleBindingLocalSubject_Expected() *corev1.ConfigMap {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      common.ArgoCDRBACConfigMapName,
+			Name:      testRBACCMName,
 			Namespace: testRBACCMNamespace,
 		},
 		Data: map[string]string{
@@ -312,7 +317,7 @@ func makeTestCM_ArgoCDRole_WithRoleBindingLocalSubject_Expected() *corev1.Config
 func makeTestCM_BuiltInAdmin_WithRoleBinding_Expected() *corev1.ConfigMap {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      common.ArgoCDRBACConfigMapName,
+			Name:      testRBACCMName,
 			Namespace: testRBACCMNamespace,
 		},
 		Data: map[string]string{
@@ -326,7 +331,7 @@ func makeTestCM_BuiltInAdmin_WithRoleBinding_Expected() *corev1.ConfigMap {
 func makeTestCM_BuiltInReadOnly_WithRoleBinding_Expected() *corev1.ConfigMap {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      common.ArgoCDRBACConfigMapName,
+			Name:      testRBACCMName,
 			Namespace: testRBACCMNamespace,
 		},
 		Data: map[string]string{

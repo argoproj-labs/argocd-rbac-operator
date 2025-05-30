@@ -147,6 +147,8 @@ As for now only single Argo CD deployment type is supported. The default Argo CD
 | livenessProbe.httpGet.port | int | `8081` |  |
 | livenessProbe.initialDelaySeconds | int | `15` |  |
 | livenessProbe.periodSeconds | int | `20` |  |
+| namespace.create | bool | `true` |  |
+| namespace.nameOverride | string | `""` |  |
 | nodeSelector | object | `{}` |  |
 | readinessProbe.httpGet.path | string | `"/readyz"` |  |
 | readinessProbe.httpGet.port | int | `8081` |  |

@@ -48,6 +48,8 @@ spec:
         - args:
           - --leader-elect
           - --health-probe-bind-address=:8081
+          - --argocd-rbac-cm-name={{ .Values.argocd.cmName }}
+          - --argocd-rbac-cm-namespace={{ .Values.argocd.namespace }}
           command:
           - /rbac-operator
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"

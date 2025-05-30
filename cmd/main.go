@@ -57,9 +57,14 @@ func main() {
 	var probeAddr string
 	var secureMetrics bool
 	var enableHTTP2 bool
+	var argoCDRBACConfigMapName string
+	var argoCDRBACConfigMapNamespace string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metric endpoint binds to. "+
 		"Use the port :8080. If not set, it will be 0 in order to disable the metrics server")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flag.StringVar(&argoCDRBACConfigMapName, "argocd-rbac-cm-name", "argocd-rbac-cm", "The name of ArgoCD RBAC configmap.")
+	flag.StringVar(&argoCDRBACConfigMapNamespace, "argocd-rbac-cm-namespace", "argocd",
+		"The namespace of ArgoCD RBAC configmap.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -124,15 +129,19 @@ func main() {
 	}
 
 	if err = (&controller.ArgoCDRoleReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:                       mgr.GetClient(),
+		Scheme:                       mgr.GetScheme(),
+		ArgoCDRBACConfigMapName:      argoCDRBACConfigMapName,
+		ArgoCDRBACConfigMapNamespace: argoCDRBACConfigMapNamespace,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Role")
 		os.Exit(1)
 	}
 	if err = (&controller.ArgoCDRoleBindingReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:                       mgr.GetClient(),
+		Scheme:                       mgr.GetScheme(),
+		ArgoCDRBACConfigMapName:      argoCDRBACConfigMapName,
+		ArgoCDRBACConfigMapNamespace: argoCDRBACConfigMapNamespace,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ArgoCDRoleBinding")
 		os.Exit(1)

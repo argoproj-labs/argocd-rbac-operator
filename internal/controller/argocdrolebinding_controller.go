@@ -35,8 +35,10 @@ import (
 // ArgoCDRoleBindingReconciler reconciles a ArgoCDRoleBinding object
 type ArgoCDRoleBindingReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log                          logr.Logger
+	Scheme                       *runtime.Scheme
+	ArgoCDRBACConfigMapName      string
+	ArgoCDRBACConfigMapNamespace string
 }
 
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdrolebindings,verbs=*
@@ -95,7 +97,7 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, nil
 	}
 
-	cm := newConfigMap()
+	cm := newConfigMap(r.ArgoCDRBACConfigMapName, r.ArgoCDRBACConfigMapNamespace)
 
 	r.Log.Info("Checking if ConfigMap exists")
 	if !IsObjectFound(r.Client, cm.Namespace, cm.Name, cm) {
@@ -155,9 +157,9 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	switch roleName {
 	case "admin":
-		role = createBuiltInAdminRole()
+		role = r.createBuiltInAdminRole()
 	case "readonly":
-		role = createBuiltInReadOnlyRole()
+		role = r.createBuiltInReadOnlyRole()
 	}
 
 	r.Log.Info("Reconciling RBAC ConfigMap")
