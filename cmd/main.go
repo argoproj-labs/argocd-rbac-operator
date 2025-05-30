@@ -63,7 +63,8 @@ func main() {
 		"Use the port :8080. If not set, it will be 0 in order to disable the metrics server")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.StringVar(&argoCDRBACConfigMapName, "argocd-rbac-cm-name", "argocd-rbac-cm", "The name of ArgoCD RBAC configmap.")
-	flag.StringVar(&argoCDRBACConfigMapNamespace, "argocd-rbac-cm-namespace", "argocd", "The namespace of ArgoCD RBAC configmap.")
+	flag.StringVar(&argoCDRBACConfigMapNamespace, "argocd-rbac-cm-namespace", "argocd",
+		"The namespace of ArgoCD RBAC configmap.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
