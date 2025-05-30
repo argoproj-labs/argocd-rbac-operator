@@ -57,6 +57,29 @@ func (r *ArgoCDRoleReconciler) delete(role *rbacoperatorv1alpha1.ArgoCDRole) err
 	return nil
 }
 
+func (r *ArgoCDProjectRoleReconciler) addFinalizer(ctx context.Context, projectRole *rbacoperatorv1alpha1.ArgoCDProjectRole) error {
+	projectRole.AddFinalizer(rbacoperatorv1alpha1.ArgoCDProjectRoleFinalizerName)
+	return r.Update(ctx, projectRole)
+}
+
+func (r *ArgoCDProjectRoleReconciler) handleFinalizer(ctx context.Context, projectRole *rbacoperatorv1alpha1.ArgoCDProjectRole) error {
+	if !projectRole.HasFinalizer(rbacoperatorv1alpha1.ArgoCDProjectRoleFinalizerName) {
+		return nil
+	}
+
+	if err := r.delete(projectRole); err != nil {
+		return err
+	}
+
+	projectRole.RemoveFinalizer(rbacoperatorv1alpha1.ArgoCDProjectRoleFinalizerName)
+	return r.Update(ctx, projectRole)
+}
+
+func (r *ArgoCDProjectRoleReconciler) delete(projectRole *rbacoperatorv1alpha1.ArgoCDProjectRole) error {
+	// TODO: Implement deletion logic for ArgoCDProjectRole
+	return nil
+}
+
 func (r *ArgoCDRoleBindingReconciler) addFinalizer(ctx context.Context, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding) error {
 	rb.AddFinalizer(rbacoperatorv1alpha1.ArgoCDRoleBindingFinalizerName)
 	return r.Update(ctx, rb)
