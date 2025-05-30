@@ -25,12 +25,12 @@ import (
 // ArgoCDRoleBindingSpec defines the desired state of ArgoCDRoleBinding
 type ArgoCDRoleBindingSpec struct {
 	// List of subjects being bound to ArgoCDRole (argocdRoleRef).
-	Subjects      []Subject     `json:"subjects"`
-	ArgoCDRoleRef ArgoCDRoleRef `json:"argocdRoleRef"`
+	Subjects      []GlobalSubject `json:"subjects,omitempty"`
+	ArgoCDRoleRef ArgoCDRoleRef   `json:"argocdRoleRef"`
 }
 
-// Subject defines the subject being bound to ArgoCDRole.
-type Subject struct {
+// GlobalSubject defines the subject being bound to ArgoCDRole.
+type GlobalSubject struct {
 	// +kubebuilder:validation:Enum=sso;local;role
 	// Kind of the subject (sso, local or role).
 	Kind string `json:"kind"`

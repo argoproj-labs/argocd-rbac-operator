@@ -97,7 +97,7 @@ func makeTestRole(opts ...argocdRoleOpt) *rbacoperatorv1alpha1.ArgoCDRole {
 			Namespace: testNamespace,
 		},
 		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
-			Rules: []rbacoperatorv1alpha1.Rule{
+			Rules: []rbacoperatorv1alpha1.GlobalRule{
 				{
 					Resource: "applications",
 					Verbs:    []string{"get", "list"},
@@ -122,7 +122,7 @@ func makeTestRoleBindingWithRoleSubject(opts ...argocdRoleBindingOpt) *rbacopera
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: testRoleName,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "role",
 					Name: "rb-role-test",
@@ -146,7 +146,7 @@ func makeTestRoleBindingWithSSOSubject(opts ...argocdRoleBindingOpt) *rbacoperat
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: testRoleName,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "sso",
 					Name: "gosha",
@@ -170,7 +170,7 @@ func makeTestRoleBindingWithLocalSubject(opts ...argocdRoleBindingOpt) *rbacoper
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: testRoleName,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "local",
 					Name: "localUser",
@@ -194,7 +194,7 @@ func makeTestRoleBindingForBuiltInAdmin(opts ...argocdRoleBindingOpt) *rbacopera
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: common.ArgoCDRoleAdmin,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "role",
 					Name: "rb-role-test",
@@ -218,7 +218,7 @@ func makeTestRoleBindingForBuiltInReadOnly(opts ...argocdRoleBindingOpt) *rbacop
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: common.ArgoCDRoleReadOnly,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "role",
 					Name: "rb-role-test",
