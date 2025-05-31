@@ -20,7 +20,7 @@ argocd:
 # The container pulls the image if not already present
 image:
   repository: quay.io/argoprojlabs/argocd-rbac-operator
-  tag: v0.1.8
+  tag: v0.1.9
   pullPolicy: IfNotPresent
 
 # An array of additional annotations to be applied to the operator service account

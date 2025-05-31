@@ -2,7 +2,7 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/argoproj-labs/argocd-rbac-operator)](https://goreportcard.com/report/github.com/argoproj-labs/argocd-rbac-operator)
 [![go.mod Go version](https://img.shields.io/github/go-mod/go-version/argoproj-labs/argocd-rbac-operator)](https://github.com/argoproj-labs/argocd-rbac-operator)
-[![GitHub Release](https://img.shields.io/github/v/release/argoproj-labs/argocd-rbac-operator)](https://github.com/argoproj-labs/argocd-rbac-operator/releases/tag/v0.1.8)
+[![GitHub Release](https://img.shields.io/github/v/release/argoproj-labs/argocd-rbac-operator)](https://github.com/argoproj-labs/argocd-rbac-operator/releases/tag/v0.1.9)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/argocd-rbac-operator)](https://artifacthub.io/packages/search?repo=argocd-rbac-operator)
 
 Kubernetes Operator for Argo CD RBAC Management.
@@ -158,10 +158,10 @@ To change the policy.csv you have to make changes in the `internal/controller/co
 
 ### Deployment types
 
-As for now only single Argo CD deployment type is supported. The default Argo CD namespace is defined as `argocd`, to change that you have to provide a flag --argocd-rbac-cm-namespace="your-argocd-namespace".
+As for now only single Argo CD deployment type is supported. The default Argo CD namespace is defined as `argocd`, to change that you have to provide a flag `--argocd-rbac-cm-namespace="your-argocd-namespace"`.
 
 ## Roadmap
 
 - extend the operator with functionality to manage Argo CD AppProject RBAC
-- achieve test coverage of >= 80% (current: ~67%)
+- achieve test coverage of >= 80% (current: ~75%)
 - allow management for multi-instances set-up of Argo CD
