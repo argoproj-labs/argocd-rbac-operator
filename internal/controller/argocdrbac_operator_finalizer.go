@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
 	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
@@ -76,7 +77,26 @@ func (r *ArgoCDProjectRoleReconciler) handleFinalizer(ctx context.Context, proje
 }
 
 func (r *ArgoCDProjectRoleReconciler) delete(projectRole *rbacoperatorv1alpha1.ArgoCDProjectRole) error {
-	// TODO: Implement deletion logic for ArgoCDProjectRole
+	rbName := projectRole.Status.ArgoCDProjectRoleBindingRef
+	if rbName == "" {
+		return nil // Role not bound to any AppProject, nothing to delete
+	}
+	rb := &rbacoperatorv1alpha1.ArgoCDProjectRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      rbName,
+			Namespace: projectRole.Namespace,
+		},
+	}
+	if !IsObjectFound(r.Client, rb.Namespace, rb.Name, rb) {
+		// RoleBinding does not exist, nothing to delete
+		return nil
+	}
+	appProjectNames := []string{}
+	// get all AppProjects this role is bound to
+	for _, subject := range rb.Spec.Subjects {
+		appProjectNames = append(appProjectNames, subject.AppProjectRef)
+	}
+	
 	return nil
 }
 
@@ -125,5 +145,10 @@ func (r *ArgoCDRoleBindingReconciler) delete(rb *rbacoperatorv1alpha1.ArgoCDRole
 			return err
 		}
 	}
+	return nil
+}
+
+func deleteProjectRoles(client client.Client, appProjects []string, roleName string) error {
+	// TODO: Implement deletion logic fo projectRoles from AppProjects
 	return nil
 }

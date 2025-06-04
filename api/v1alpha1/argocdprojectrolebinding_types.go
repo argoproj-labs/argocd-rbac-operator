@@ -25,11 +25,12 @@ import (
 // ArgoCDProjectRoleBindingSpec defines the desired state of ArgoCDProjectRoleBinding.
 type ArgoCDProjectRoleBindingSpec struct {
 	// List of subjects being bound to ArgoCDProjectRole (argocdProjectRoleRef).
-	Subjects             []AppProjectSubject  `json:"subjects,omitempty"`
+	// +kubebuilder:validation:MinItems=1
+	Subjects             []AppProjectSubject  `json:"subjects"`
 	ArgoCDProjectRoleRef ArgoCDProjectRoleRef `json:"argocdProjectRoleRef"`
 }
 
-// AppProjectSubject defines the subject being bound to an AppProject scoped ArgoCDRole.
+// AppProjectSubject defines the subject being bound to ArgoCDProjectRole.
 type AppProjectSubject struct {
 	// Reference to the AppProject the ArgoCDRole is bound to.
 	AppProjectRef string `json:"appProjectRef"`
@@ -44,6 +45,7 @@ type ArgoCDProjectRoleRef struct {
 }
 
 // ArgoCDProjectRoleBindingStatus defines the observed state of ArgoCDProjectRoleBinding.
+// TODO: Add field to track of AppProjects the Role is bound to.
 type ArgoCDProjectRoleBindingStatus struct {
 	// +listType=map
 	// +listMapKey=type

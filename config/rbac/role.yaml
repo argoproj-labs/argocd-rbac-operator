@@ -39,44 +39,28 @@ rules:
   - patch
   - update
 - apiGroups:
-  - rbac-operator
+  - rbac-operator.argoproj-labs.io
   resources:
-  - argocdprojectroles
+  - argocdprojectrolebindings
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - rbac-operator
-  resources:
-  - argocdprojectroles/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - rbac-operator
-  resources:
-  - argocdprojectroles/status
-  verbs:
-  - get
-  - patch
-  - update
 - apiGroups:
   - rbac-operator.argoproj-labs.io
   resources:
-  - argocdrolebindings
-  - argocdroles
+  - argocdprojectroles
+  - argocdprojectroles/finalizers
+  - argocdprojectroles/status
+  - argocdrolebindings/finalizers
+  - argocdrolebindings/status
+  - argocdroles/finalizers
   verbs:
   - '*'
 - apiGroups:
   - rbac-operator.argoproj-labs.io
   resources:
-  - argocdrolebindings/finalizers
-  - argocdrolebindings/status
-  - argocdroles/finalizers
+  - argocdrolebindings
+  - argocdroles
   verbs:
   - '*'
 - apiGroups:

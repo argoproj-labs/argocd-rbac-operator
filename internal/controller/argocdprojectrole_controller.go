@@ -39,6 +39,7 @@ type ArgoCDProjectRoleReconciler struct {
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdprojectroles,verbs=*
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdprojectroles/status,verbs=*
 // +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdprojectroles/finalizers,verbs=*
+// +kubebuilder:rbac:groups=rbac-operator.argoproj-labs.io,resources=argocdprojectrolebindings,verbs=get;list
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -91,8 +92,29 @@ func (r *ArgoCDProjectRoleReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	if projectRole.HasArgoCDProjectRoleBindingRef() {
 		projectRb := rbacoperatorv1alpha1.ArgoCDProjectRoleBinding{}
-	}
 
+		projectRBObjectKey := client.ObjectKey{
+			Name:      projectRole.Status.ArgoCDProjectRoleBindingRef,
+			Namespace: req.Namespace,
+		}
+
+		if err := r.Get(ctx, projectRBObjectKey, &projectRb); err != nil {
+			if errors.IsNotFound(err) {
+				r.Log.Info("ArgoCDProjectRoleBinding not found", "name", projectRBObjectKey.Name)
+				projectRole.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
+				projectRole.Status.ArgoCDProjectRoleBindingRef = ""
+				if err := r.Status().Update(ctx, &projectRole); err != nil {
+					r.Log.Error(err, "Failed to update ArgoCDProjectRole status after binding not found", "name", req.Name)
+				}
+				return ctrl.Result{}, nil
+			}
+			projectRole.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
+			if err := r.Status().Update(ctx, &projectRole); err != nil {
+				r.Log.Error(err, "Failed to update ArgoCDProjectRole status", "name", req.Name)
+			}
+			return ctrl.Result{}, fmt.Errorf("error fetching ArgoCDProjectRoleBinding: %v", err)
+		}
+	}
 	return ctrl.Result{}, nil
 }
 
