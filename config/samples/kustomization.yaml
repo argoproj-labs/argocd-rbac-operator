@@ -2,6 +2,6 @@
 resources:
 - argocdrole.yaml
 - argocdrolebinding.yaml
-- rbac-operator_v1alpha1_argocdprojectrole.yaml
-- rbac-operator_v1alpha1_argocdprojectrolebinding.yaml
+- argocdprojectrole.yaml
+- argocdprojectrolebinding.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

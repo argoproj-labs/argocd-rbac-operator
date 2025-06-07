@@ -81,6 +81,12 @@ spec:
             description: ArgoCDProjectRoleBindingStatus defines the observed state
               of ArgoCDProjectRoleBinding.
             properties:
+              appProjectsBound:
+                description: AppProjectsBound is a list of AppProjects that the role
+                  is bound to.
+                items:
+                  type: string
+                type: array
               conditions:
                 description: Conditions defines the list of conditions.
                 items:

@@ -37,7 +37,7 @@ func getDefaultRBACPolicy() string {
 
 func getRBACPolicyCSV(role *rbacoperatorv1alpha1.ArgoCDRole, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding) string {
 	policy := ""
-	roleName := fmt.Sprintf("role:%s", role.ObjectMeta.Name)
+	roleName := fmt.Sprintf("role:%s", role.Name)
 
 	policy += buildPolicyStringRules(role, roleName)
 	policy += buildPolicyStringSubjects(rb, role)
@@ -62,7 +62,7 @@ func buildPolicyStringRules(role *rbacoperatorv1alpha1.ArgoCDRole, roleName stri
 // buildPolicyStringSubjects will build the policy string for Subjects field of the given role.
 func buildPolicyStringSubjects(rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role *rbacoperatorv1alpha1.ArgoCDRole) string {
 	policy := ""
-	roleName := fmt.Sprintf("role:%s", role.ObjectMeta.Name)
+	roleName := fmt.Sprintf("role:%s", role.Name)
 	for _, subject := range rb.Spec.Subjects {
 		switch subject.Kind {
 		case "sso":
@@ -109,7 +109,7 @@ func (r *ArgoCDRoleReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMap, role
 	}
 
 	if changed {
-		return r.Client.Update(context.TODO(), cm)
+		return r.Update(context.TODO(), cm)
 	}
 	return nil
 }
@@ -135,7 +135,7 @@ func (r *ArgoCDRoleReconciler) reconcileRBACConfigMapWithRoleBinding(cm *corev1.
 	}
 
 	if changed {
-		return r.Client.Update(context.TODO(), cm)
+		return r.Update(context.TODO(), cm)
 	}
 	return nil
 }
@@ -161,7 +161,7 @@ func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMa
 	}
 
 	if changed {
-		return r.Client.Update(context.TODO(), cm)
+		return r.Update(context.TODO(), cm)
 	}
 	return nil
 }
@@ -187,7 +187,7 @@ func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMapForBuiltInRole(cm *c
 	}
 
 	if changed {
-		return r.Client.Update(context.TODO(), cm)
+		return r.Update(context.TODO(), cm)
 	}
 	return nil
 }

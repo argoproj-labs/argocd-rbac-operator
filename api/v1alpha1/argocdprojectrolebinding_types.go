@@ -45,12 +45,13 @@ type ArgoCDProjectRoleRef struct {
 }
 
 // ArgoCDProjectRoleBindingStatus defines the observed state of ArgoCDProjectRoleBinding.
-// TODO: Add field to track of AppProjects the Role is bound to.
 type ArgoCDProjectRoleBindingStatus struct {
 	// +listType=map
 	// +listMapKey=type
 	// Conditions defines the list of conditions.
 	Conditions []Condition `json:"conditions,omitempty"`
+	// AppProjectsBound is a list of AppProjects that the role is bound to.
+	AppProjectsBound []string `json:"appProjectsBound,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -68,7 +69,7 @@ type ArgoCDProjectRoleBinding struct {
 
 // IsBeingDeleted returns true if a deletion timestamp is set
 func (r *ArgoCDProjectRoleBinding) IsBeingDeleted() bool {
-	return !r.ObjectMeta.DeletionTimestamp.IsZero()
+	return !r.DeletionTimestamp.IsZero()
 }
 
 // ArgoCDProjectRoleFinalizerName is the name of the finalizer used to delete the Role
@@ -76,17 +77,17 @@ const ArgoCDProjectRoleBindingFinalizerName = "rbac-operator.argoproj-labs.io/fi
 
 // HasFinalizer returns true if the Role has the finalizer
 func (r *ArgoCDProjectRoleBinding) HasFinalizer(finalizerName string) bool {
-	return slices.Contains(r.ObjectMeta.Finalizers, finalizerName)
+	return slices.Contains(r.Finalizers, finalizerName)
 }
 
 // AddFinalizer adds the finalizer to the Role
 func (r *ArgoCDProjectRoleBinding) AddFinalizer(finalizerName string) {
-	r.ObjectMeta.Finalizers = append(r.ObjectMeta.Finalizers, finalizerName)
+	r.Finalizers = append(r.Finalizers, finalizerName)
 }
 
 // RemoveFinalizer removes the finalizer from the Role
 func (r *ArgoCDProjectRoleBinding) RemoveFinalizer(finalizerName string) {
-	r.ObjectMeta.Finalizers = slices.DeleteFunc(r.ObjectMeta.Finalizers, func(s string) bool {
+	r.Finalizers = slices.DeleteFunc(r.Finalizers, func(s string) bool {
 		return s == finalizerName
 	})
 }

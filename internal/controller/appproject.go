@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	argocdv1alpha "github.com/argoproj/argo-cd/v3/pkg/apis/application/v1alpha1"
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -34,13 +35,13 @@ func newAppProject(name, namespace string) *argocdv1alpha.AppProject {
 	}
 }
 
-func (r *ArgoCDProjectRoleReconciler) patchAppProject(appProject *argocdv1alpha.AppProject, pr *rbacoperatorv1alpha1.ArgoCDProjectRole, appProjectSubject *rbacoperatorv1alpha1.AppProjectSubject) error {
+func (r *ArgoCDProjectRoleBindingReconciler) patchAppProject(appProject *argocdv1alpha.AppProject, pr *rbacoperatorv1alpha1.ArgoCDProjectRole, groups *[]string) error {
 	changed := false
 	apProjectRole := &argocdv1alpha.ProjectRole{
-		Name: pr.Name,
+		Name:        pr.Name,
 		Description: pr.Spec.Description,
-		Groups: appProjectSubject.Groups,
-		Policies: buildCasbinPolicyStrings(pr, appProject),
+		Groups:      *groups,
+		Policies:    buildCasbinPolicyStrings(pr, appProject),
 	}
 
 	ogAppProject := appProject.DeepCopy()
@@ -55,7 +56,7 @@ func (r *ArgoCDProjectRoleReconciler) patchAppProject(appProject *argocdv1alpha.
 		changed = true
 	}
 	if changed {
-		return r.Client.Patch(context.TODO(), appProject, client.MergeFrom(ogAppProject))
+		return r.Patch(context.TODO(), appProject, client.MergeFrom(ogAppProject))
 	}
 	return nil
 }
@@ -89,4 +90,18 @@ func areProjectRolesEqual(r1, r2 *argocdv1alpha.ProjectRole) bool {
 	}
 
 	return true
+}
+
+func removeRoleFromAppProject(rClient client.Client, appProject *argocdv1alpha.AppProject, roleName string) error {
+	ogAppProject := appProject.DeepCopy()
+
+	_, index := getRoleInAppProject(appProject, roleName)
+	if index == -1 {
+		return nil // Role not found in AppProject, nothing to delete
+	}
+	appProject.Spec.Roles = append(appProject.Spec.Roles[:index], appProject.Spec.Roles[index+1:]...)
+	if err := rClient.Patch(context.TODO(), appProject, client.MergeFrom(ogAppProject)); err != nil {
+		return errors.Wrapf(err, "failed to patch AppProject %s/%s to remove role %s", appProject.Namespace, appProject.Name, roleName)
+	}
+	return nil
 }

@@ -4,8 +4,8 @@
 resources:
 - bases/rbac-operator.argoproj-labs.io_argocdroles.yaml
 - bases/rbac-operator.argoproj-labs.io_argocdrolebindings.yaml
-- bases/rbac-operator_argocdprojectroles.yaml
-- bases/rbac-operator_argocdprojectrolebindings.yaml
+- bases/rbac-operator.argoproj-labs.io_argocdprojectroles.yaml
+- bases/rbac-operator.argoproj-labs.io_argocdprojectrolebindings.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patches:

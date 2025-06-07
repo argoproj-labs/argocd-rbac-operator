@@ -1,9 +1,0 @@
-apiVersion: rbac-operator/v1alpha1
-kind: ArgoCDProjectRole
-metadata:
-  labels:
-    app.kubernetes.io/name: argocd-rbac-operator
-    app.kubernetes.io/managed-by: kustomize
-  name: argocdprojectrole-sample
-spec:
-  # TODO(user): Add fields here

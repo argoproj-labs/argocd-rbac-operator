@@ -64,7 +64,7 @@ type ArgoCDRole struct {
 
 // IsBeingDeleted returns true if a deletion timestamp is set
 func (r *ArgoCDRole) IsBeingDeleted() bool {
-	return !r.ObjectMeta.DeletionTimestamp.IsZero()
+	return !r.DeletionTimestamp.IsZero()
 }
 
 // ArgoCDRoleFinalizerName is the name of the finalizer used to delete the Role
@@ -72,17 +72,17 @@ const ArgoCDRoleFinalizerName = "rbac-operator.argoproj-labs.io/finalizer"
 
 // HasFinalizer returns true if the Role has the finalizer
 func (r *ArgoCDRole) HasFinalizer(finalizerName string) bool {
-	return slices.Contains(r.ObjectMeta.Finalizers, finalizerName)
+	return slices.Contains(r.Finalizers, finalizerName)
 }
 
 // AddFinalizer adds the finalizer to the Role
 func (r *ArgoCDRole) AddFinalizer(finalizerName string) {
-	r.ObjectMeta.Finalizers = append(r.ObjectMeta.Finalizers, finalizerName)
+	r.Finalizers = append(r.Finalizers, finalizerName)
 }
 
 // RemoveFinalizer removes the finalizer from the Role
 func (r *ArgoCDRole) RemoveFinalizer(finalizerName string) {
-	r.ObjectMeta.Finalizers = slices.DeleteFunc(r.ObjectMeta.Finalizers, func(s string) bool {
+	r.Finalizers = slices.DeleteFunc(r.Finalizers, func(s string) bool {
 		return s == finalizerName
 	})
 }

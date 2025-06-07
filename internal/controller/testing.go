@@ -20,18 +20,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
-
-	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
-
-	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
-	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 )
 
 const (
@@ -67,6 +66,20 @@ func makeTestArgoCDRoleBindingReconciler(client client.Client, sch *runtime.Sche
 	}
 }
 
+func makeTestArgoCDProjectRoleReconciler(client client.Client, sch *runtime.Scheme) *ArgoCDProjectRoleReconciler {
+	return &ArgoCDProjectRoleReconciler{
+		Client: client,
+		Scheme: sch,
+	}
+}
+
+func makeTestArgoCDProjectRoleBindingReconciler(client client.Client, sch *runtime.Scheme) *ArgoCDProjectRoleBindingReconciler {
+	return &ArgoCDProjectRoleBindingReconciler{
+		Client: client,
+		Scheme: sch,
+	}
+}
+
 func makeTestReconcilerClient(sch *runtime.Scheme, resObjs, subresObjs []client.Object) client.Client {
 	client := fake.NewClientBuilder().WithScheme(sch)
 	if len(resObjs) > 0 {
@@ -85,6 +98,8 @@ func makeTestReconcilerScheme(schOpts ...SchemeOpt) *runtime.Scheme {
 	}
 	return s
 }
+
+// Global RBAC objects used in tests
 
 type argocdRoleOpt func(*rbacoperatorv1alpha1.ArgoCDRole)
 
@@ -360,7 +375,7 @@ func addFinalizerRole() argocdRoleOpt {
 func roleDeletedAt(now time.Time) argocdRoleOpt {
 	return func(r *rbacoperatorv1alpha1.ArgoCDRole) {
 		wrapped := metav1.NewTime(now)
-		r.ObjectMeta.DeletionTimestamp = &wrapped
+		r.DeletionTimestamp = &wrapped
 	}
 }
 
@@ -379,6 +394,6 @@ func addFinalizerRoleBinding() argocdRoleBindingOpt {
 func roleBindingDeletedAt(now time.Time) argocdRoleBindingOpt {
 	return func(r *rbacoperatorv1alpha1.ArgoCDRoleBinding) {
 		wrapped := metav1.NewTime(now)
-		r.ObjectMeta.DeletionTimestamp = &wrapped
+		r.DeletionTimestamp = &wrapped
 	}
 }
