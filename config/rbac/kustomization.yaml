@@ -18,3 +18,13 @@ resources:
 - argocdrole_editor_role.yaml
 - argocdrole_viewer_role.yaml
 
+# For each CRD, "Admin", "Editor" and "Viewer" roles are scaffolded by
+# default, aiding admins in cluster management. Those roles are
+# not used by the argocd-rbac-operator itself. You can comment the following lines
+# if you do not want those helpers be installed with your Project.
+- argocdprojectrolebinding_admin_role.yaml
+- argocdprojectrolebinding_editor_role.yaml
+- argocdprojectrolebinding_viewer_role.yaml
+- argocdprojectrole_admin_role.yaml
+- argocdprojectrole_editor_role.yaml
+- argocdprojectrole_viewer_role.yaml

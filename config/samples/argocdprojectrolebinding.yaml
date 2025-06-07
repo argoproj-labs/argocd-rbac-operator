@@ -1,0 +1,19 @@
+apiVersion: rbac-operator.argoproj-labs.io/v1alpha1
+kind: ArgoCDProjectRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/name: argocd-rbac-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: test-project-role-binding
+spec:
+  argocdProjectRoleRef: 
+    name: test-project-role
+  subjects:
+  - appProjectRef: test-appproject-1
+    groups:
+    - test-group-1
+    - test-group-2
+  - appProjectRef: test-appproject-2
+    groups:
+    - test-group-3
+    - test-group-4

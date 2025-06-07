@@ -20,18 +20,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
-
-	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
-
-	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
-	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 )
 
 const (
@@ -67,6 +66,20 @@ func makeTestArgoCDRoleBindingReconciler(client client.Client, sch *runtime.Sche
 	}
 }
 
+func makeTestArgoCDProjectRoleReconciler(client client.Client, sch *runtime.Scheme) *ArgoCDProjectRoleReconciler {
+	return &ArgoCDProjectRoleReconciler{
+		Client: client,
+		Scheme: sch,
+	}
+}
+
+func makeTestArgoCDProjectRoleBindingReconciler(client client.Client, sch *runtime.Scheme) *ArgoCDProjectRoleBindingReconciler {
+	return &ArgoCDProjectRoleBindingReconciler{
+		Client: client,
+		Scheme: sch,
+	}
+}
+
 func makeTestReconcilerClient(sch *runtime.Scheme, resObjs, subresObjs []client.Object) client.Client {
 	client := fake.NewClientBuilder().WithScheme(sch)
 	if len(resObjs) > 0 {
@@ -86,6 +99,8 @@ func makeTestReconcilerScheme(schOpts ...SchemeOpt) *runtime.Scheme {
 	return s
 }
 
+// Global RBAC objects used in tests
+
 type argocdRoleOpt func(*rbacoperatorv1alpha1.ArgoCDRole)
 
 type argocdRoleBindingOpt func(*rbacoperatorv1alpha1.ArgoCDRoleBinding)
@@ -97,7 +112,7 @@ func makeTestRole(opts ...argocdRoleOpt) *rbacoperatorv1alpha1.ArgoCDRole {
 			Namespace: testNamespace,
 		},
 		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
-			Rules: []rbacoperatorv1alpha1.Rule{
+			Rules: []rbacoperatorv1alpha1.GlobalRule{
 				{
 					Resource: "applications",
 					Verbs:    []string{"get", "list"},
@@ -122,7 +137,7 @@ func makeTestRoleBindingWithRoleSubject(opts ...argocdRoleBindingOpt) *rbacopera
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: testRoleName,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "role",
 					Name: "rb-role-test",
@@ -146,7 +161,7 @@ func makeTestRoleBindingWithSSOSubject(opts ...argocdRoleBindingOpt) *rbacoperat
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: testRoleName,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "sso",
 					Name: "gosha",
@@ -170,7 +185,7 @@ func makeTestRoleBindingWithLocalSubject(opts ...argocdRoleBindingOpt) *rbacoper
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: testRoleName,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "local",
 					Name: "localUser",
@@ -194,7 +209,7 @@ func makeTestRoleBindingForBuiltInAdmin(opts ...argocdRoleBindingOpt) *rbacopera
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: common.ArgoCDRoleAdmin,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "role",
 					Name: "rb-role-test",
@@ -218,7 +233,7 @@ func makeTestRoleBindingForBuiltInReadOnly(opts ...argocdRoleBindingOpt) *rbacop
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: common.ArgoCDRoleReadOnly,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "role",
 					Name: "rb-role-test",
@@ -360,7 +375,7 @@ func addFinalizerRole() argocdRoleOpt {
 func roleDeletedAt(now time.Time) argocdRoleOpt {
 	return func(r *rbacoperatorv1alpha1.ArgoCDRole) {
 		wrapped := metav1.NewTime(now)
-		r.ObjectMeta.DeletionTimestamp = &wrapped
+		r.DeletionTimestamp = &wrapped
 	}
 }
 
@@ -379,6 +394,6 @@ func addFinalizerRoleBinding() argocdRoleBindingOpt {
 func roleBindingDeletedAt(now time.Time) argocdRoleBindingOpt {
 	return func(r *rbacoperatorv1alpha1.ArgoCDRoleBinding) {
 		wrapped := metav1.NewTime(now)
-		r.ObjectMeta.DeletionTimestamp = &wrapped
+		r.DeletionTimestamp = &wrapped
 	}
 }
