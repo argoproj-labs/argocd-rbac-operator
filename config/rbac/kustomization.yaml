@@ -9,14 +9,6 @@ resources:
 - role_binding.yaml
 - leader_election_role.yaml
 - leader_election_role_binding.yaml
-# For each CRD, "Editor" and "Viewer" roles are scaffolded by
-# default, aiding admins in cluster management. Those roles are
-# not used by the Project itself. You can comment the following lines
-# if you do not want those helpers be installed with your Project.
-- argocdrolebinding_editor_role.yaml
-- argocdrolebinding_viewer_role.yaml
-- argocdrole_editor_role.yaml
-- argocdrole_viewer_role.yaml
 
 # For each CRD, "Admin", "Editor" and "Viewer" roles are scaffolded by
 # default, aiding admins in cluster management. Those roles are
@@ -28,3 +20,7 @@ resources:
 - argocdprojectrole_admin_role.yaml
 - argocdprojectrole_editor_role.yaml
 - argocdprojectrole_viewer_role.yaml
+- argocdrolebinding_editor_role.yaml
+- argocdrolebinding_viewer_role.yaml
+- argocdrole_editor_role.yaml
+- argocdrole_viewer_role.yaml

@@ -28,7 +28,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels: {{- include "argocd-rbac-operator.labels" . | nindent 4 }}
-  name: argocd-rbac-operator-role-editor-role
+  name: argocd-rbac-operator-argocdrole-editor-role
 rules:
 - apiGroups:
   - rbac-operator.argoproj-labs.io
@@ -49,3 +49,52 @@ rules:
   verbs:
   - get
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels: {{- include "argocd-rbac-operator.labels" . | nindent 4 }}
+  name: argocd-rbac-operator-argocdprojectrole-editor-role
+rules:
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdprojectroles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdprojectroles/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels: {{- include "argocd-rbac-operator.labels" . | nindent 4 }}
+  name: argocd-rbac-operator-argocdprojectrolebinding-editor-role
+rules:
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdprojectrolebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdprojectrolebindings/status
+  verbs:
+  - get

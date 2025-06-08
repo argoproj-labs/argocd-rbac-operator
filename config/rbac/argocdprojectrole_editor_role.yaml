@@ -14,7 +14,7 @@ metadata:
   name: argocdprojectrole-editor-role
 rules:
 - apiGroups:
-  - rbac-operator
+  - rbac-operator.argoproj-labs.io
   resources:
   - argocdprojectroles
   verbs:
@@ -26,7 +26,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - rbac-operator
+  - rbac-operator.argoproj-labs.io
   resources:
   - argocdprojectroles/status
   verbs:

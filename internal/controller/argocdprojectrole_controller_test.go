@@ -18,67 +18,161 @@ package controller
 
 import (
 	"context"
+	"testing"
+	"time"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/api/errors"
+	argocdv1alpha "github.com/argoproj/argo-cd/v3/pkg/apis/application/v1alpha1"
+	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
 )
 
-var _ = Describe("ArgoCDProjectRole Controller", func() {
-	Context("When reconciling a resource", func() {
-		const resourceName = "test-resource"
+var _ reconcile.Reconciler = &ArgoCDProjectRoleReconciler{}
 
-		ctx := context.Background()
+func TestArgoCDProjectRoleReconciler_Reconcile(t *testing.T) {
+	logf.SetLogger(ZapLogger(true))
+	argocdProjectRole := makeTestProjectRole(addFinalizerProjectRole())
 
-		typeNamespacedName := types.NamespacedName{
-			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
-		}
-		argocdprojectrole := &rbacoperatorv1alpha1.ArgoCDProjectRole{}
+	resObjs := []client.Object{argocdProjectRole}
+	subresObjs := []client.Object{argocdProjectRole}
+	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
+	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
+	reconciler := makeTestArgoCDProjectRoleReconciler(client, scheme)
 
-		BeforeEach(func() {
-			By("creating the custom resource for the Kind ArgoCDProjectRole")
-			err := k8sClient.Get(ctx, typeNamespacedName, argocdprojectrole)
-			if err != nil && errors.IsNotFound(err) {
-				resource := &rbacoperatorv1alpha1.ArgoCDProjectRole{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
-						Namespace: "default",
-					},
-					// TODO(user): Specify other spec details if needed.
-				}
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
-			}
-		})
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      argocdProjectRole.Name,
+			Namespace: argocdProjectRole.Namespace,
+		},
+	}
 
-		AfterEach(func() {
-			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &rbacoperatorv1alpha1.ArgoCDProjectRole{}
-			err := k8sClient.Get(ctx, typeNamespacedName, resource)
-			Expect(err).NotTo(HaveOccurred())
+	res, err := reconciler.Reconcile(context.TODO(), req)
+	assert.NoError(t, err)
+	if res.RequeueAfter < 5*time.Minute {
+		t.Fatalf("reconcile requeued request after %s", res.RequeueAfter)
+	}
 
-			By("Cleanup the specific resource instance ArgoCDProjectRole")
-			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
-		})
-		It("should successfully reconcile the resource", func() {
-			By("Reconciling the created resource")
-			controllerReconciler := &ArgoCDProjectRoleReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
-			}
+	projectRoleRes := &rbacoperatorv1alpha1.ArgoCDProjectRole{}
+	err = reconciler.Get(context.TODO(), req.NamespacedName, projectRoleRes)
+	assert.NoError(t, err)
+	assert.Equal(t, projectRoleRes, argocdProjectRole)
+}
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: typeNamespacedName,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
-			// Example: If you expect a certain status condition after reconciliation, verify it here.
-		})
-	})
-})
+func TestArgoCDProjectRoleReconciler_AddFinalizer(t *testing.T) {
+	logf.SetLogger(ZapLogger(true))
+	argocdProjectRole := makeTestProjectRole()
+
+	resObjs := []client.Object{argocdProjectRole}
+	subresObjs := []client.Object{argocdProjectRole}
+	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
+	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
+	reconciler := makeTestArgoCDProjectRoleReconciler(client, scheme)
+
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      argocdProjectRole.Name,
+			Namespace: argocdProjectRole.Namespace,
+		},
+	}
+
+	res, err := reconciler.Reconcile(context.TODO(), req)
+	assert.NoError(t, err)
+	if res.RequeueAfter < time.Second {
+		t.Fatalf("reconcile requeued request after %s", res.RequeueAfter)
+	}
+	projectRoleRes := &rbacoperatorv1alpha1.ArgoCDProjectRole{}
+	err = reconciler.Get(context.TODO(), req.NamespacedName, projectRoleRes)
+	assert.NoError(t, err)
+
+	assert.Contains(t, projectRoleRes.GetFinalizers(), rbacoperatorv1alpha1.ArgoCDProjectRoleFinalizerName)
+}
+
+func TestArgoCDProjectRole_RoleNotFound(t *testing.T) {
+	logf.SetLogger(ZapLogger(true))
+
+	resObjs := []client.Object{}
+	subresObjs := []client.Object{}
+	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
+	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
+	reconciler := makeTestArgoCDProjectRoleReconciler(client, scheme)
+
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      testProjectRoleName,
+			Namespace: testNamespace,
+		},
+	}
+
+	res, err := reconciler.Reconcile(context.TODO(), req)
+	assert.NoError(t, err)
+	if res.RequeueAfter > 0 {
+		t.Fatalf("reconcile requeued request after %s", res.RequeueAfter)
+	}
+	assert.Error(t, reconciler.Get(context.TODO(), types.NamespacedName{Name: testProjectRoleName, Namespace: testNamespace}, &rbacoperatorv1alpha1.ArgoCDProjectRole{}))
+}
+
+func TestArgoCDProjectRole_HandleFinalizer(t *testing.T) {
+	logf.SetLogger(ZapLogger(true))
+	argocdProjectRole := makeTestProjectRole(addFinalizerProjectRole(), projectRoleDeletedAt(time.Now()), addProjectRoleBinding(testProjectRoleBindingName))
+
+	resObjs := []client.Object{argocdProjectRole}
+	subresObjs := []client.Object{argocdProjectRole}
+	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme, addArgoCDPkgToScheme())
+	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
+	reconciler := makeTestArgoCDProjectRoleReconciler(client, scheme)
+
+	assert.NoError(t, reconciler.Create(context.TODO(), makeTestProjectRoleBinding()))
+	assert.NoError(t, reconciler.Create(context.TODO(), makeTestAppProject(addTestRoleToAppProject())))
+
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      argocdProjectRole.Name,
+			Namespace: argocdProjectRole.Namespace,
+		},
+	}
+
+	res, err := reconciler.Reconcile(context.TODO(), req)
+	assert.NoError(t, err)
+	if res.RequeueAfter > 0 {
+		t.Fatalf("reconcile requeued request after %s", res.RequeueAfter)
+	}
+
+	appProject := &argocdv1alpha.AppProject{}
+	err = reconciler.Get(context.TODO(), types.NamespacedName{Name: testAppProjectName, Namespace: testNamespace}, appProject)
+	assert.NoError(t, err)
+	wantAppProject := makeTestAppProject()
+	assert.Equal(t, wantAppProject.Spec.Roles, appProject.Spec.Roles)
+}
+
+func TestArgoCDProjectRole_RoleBindingMissing(t *testing.T) {
+	logf.SetLogger(ZapLogger(true))
+	argocdProjectRole := makeTestProjectRole(addFinalizerProjectRole(), addProjectRoleBinding(testProjectRoleBindingName))
+
+	resObjs := []client.Object{argocdProjectRole}
+	subresObjs := []client.Object{argocdProjectRole}
+	scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
+	client := makeTestReconcilerClient(scheme, resObjs, subresObjs)
+	reconciler := makeTestArgoCDProjectRoleReconciler(client, scheme)
+
+	req := reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      argocdProjectRole.Name,
+			Namespace: argocdProjectRole.Namespace,
+		},
+	}
+
+	res, err := reconciler.Reconcile(context.TODO(), req)
+	assert.NoError(t, err)
+	if res.RequeueAfter < time.Minute*2 {
+		t.Fatalf("reconcile requeued request after %s", res.RequeueAfter)
+	}
+
+	projectRoleRes := &rbacoperatorv1alpha1.ArgoCDProjectRole{}
+	err = reconciler.Get(context.TODO(), req.NamespacedName, projectRoleRes)
+	assert.NoError(t, err)
+	assert.Equal(t, projectRoleRes.Status.ArgoCDProjectRoleBindingRef, "")
+}

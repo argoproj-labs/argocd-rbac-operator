@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -58,8 +59,8 @@ func (r *ArgoCDProjectRoleReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		projectRole.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 		if err := r.Status().Update(ctx, &projectRole); err != nil {
 			r.Log.Error(err, "Failed to update ArgoCDProjectRole status", "name", req.Name)
-			return ctrl.Result{}, err
 		}
+		return ctrl.Result{RequeueAfter: time.Minute * 2}, err
 	}
 
 	if projectRole.IsBeingDeleted() {
@@ -68,7 +69,7 @@ func (r *ArgoCDProjectRoleReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			if err := r.Status().Update(ctx, &projectRole); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDProjectRole status during finalizer handling", "name", req.Name)
 			}
-			return ctrl.Result{}, fmt.Errorf("error when handling finalizer: %v", err)
+			return ctrl.Result{RequeueAfter: time.Minute * 2}, fmt.Errorf("error when handling finalizer: %v", err)
 		}
 		return ctrl.Result{}, nil
 	}
@@ -79,9 +80,9 @@ func (r *ArgoCDProjectRoleReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			if err := r.Status().Update(ctx, &projectRole); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDProjectRole status after adding finalizer", "name", req.Name)
 			}
-			return ctrl.Result{}, fmt.Errorf("error when adding finalizer: %v", err)
+			return ctrl.Result{RequeueAfter: time.Minute * 2}, fmt.Errorf("error when adding finalizer: %v", err)
 		}
-		return ctrl.Result{}, nil
+		return ctrl.Result{RequeueAfter: time.Second}, nil
 	}
 
 	if projectRole.HasArgoCDProjectRoleBindingRef() {
@@ -100,16 +101,16 @@ func (r *ArgoCDProjectRoleReconciler) Reconcile(ctx context.Context, req ctrl.Re
 				if err := r.Status().Update(ctx, &projectRole); err != nil {
 					r.Log.Error(err, "Failed to update ArgoCDProjectRole status after binding not found", "name", req.Name)
 				}
-				return ctrl.Result{}, nil
+				return ctrl.Result{RequeueAfter: time.Minute * 2}, nil
 			}
 			projectRole.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 			if err := r.Status().Update(ctx, &projectRole); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDProjectRole status", "name", req.Name)
 			}
-			return ctrl.Result{}, fmt.Errorf("error fetching ArgoCDProjectRoleBinding: %v", err)
+			return ctrl.Result{RequeueAfter: time.Minute * 2}, fmt.Errorf("error fetching ArgoCDProjectRoleBinding: %v", err)
 		}
 	}
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: time.Minute * 5}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

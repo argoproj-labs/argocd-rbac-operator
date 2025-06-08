@@ -14,7 +14,7 @@ metadata:
   name: argocdprojectrole-viewer-role
 rules:
 - apiGroups:
-  - rbac-operator
+  - rbac-operator.argoproj-labs.io
   resources:
   - argocdprojectroles
   verbs:
@@ -22,7 +22,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - rbac-operator
+  - rbac-operator.argoproj-labs.io
   resources:
   - argocdprojectroles/status
   verbs:
