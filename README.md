@@ -268,7 +268,7 @@ spec:
 If changes there made to the CRs, they also will be reflected in referenced AppProjects:
 
 - changes to `spec.rules` of ArgoCDProjectRole
-  - will be pacthed to AppProject on next reconcile of ArgoCDProjectRoleBinding
+  - will be patched to AppProject on next reconcile of ArgoCDProjectRoleBinding
 - changes to `spec.subjects` of ArgoCDProjectRoleBindings
   - deletion of a subject, will delete the role in AppProject
   - change to subject will be reflected in AppProject on next reconcile

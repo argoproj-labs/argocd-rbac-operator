@@ -14,13 +14,13 @@ metadata:
   name: argocdprojectrolebinding-admin-role
 rules:
 - apiGroups:
-  - rbac-operator
+  - rbac-operator.argoproj-labs.io
   resources:
   - argocdprojectrolebindings
   verbs:
   - '*'
 - apiGroups:
-  - rbac-operator
+  - rbac-operator.argoproj-labs.ios
   resources:
   - argocdprojectrolebindings/status
   verbs:

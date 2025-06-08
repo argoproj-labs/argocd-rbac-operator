@@ -72,6 +72,7 @@ spec:
                 type: array
             required:
             - argocdRoleRef
+            - subjects
             type: object
           status:
             description: ArgoCDRoleBindingStatus defines the observed state of ArgoCDRoleBinding

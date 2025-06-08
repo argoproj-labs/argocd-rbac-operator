@@ -25,7 +25,7 @@ import (
 // ArgoCDRoleBindingSpec defines the desired state of ArgoCDRoleBinding
 type ArgoCDRoleBindingSpec struct {
 	// List of subjects being bound to ArgoCDRole (argocdRoleRef).
-	Subjects      []GlobalSubject `json:"subjects,omitempty"`
+	Subjects      []GlobalSubject `json:"subjects"`
 	ArgoCDRoleRef ArgoCDRoleRef   `json:"argocdRoleRef"`
 }
 
