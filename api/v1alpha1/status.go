@@ -112,8 +112,8 @@ func (r *ArgoCDRole) SetConditions(c ...Condition) {
 
 			if existing.Equal(new) {
 				exists = true
-				if existing.ObservedGeneration < new.ObservedGeneration {
-					existing.ObservedGeneration = new.ObservedGeneration
+				if r.Status.Conditions[i].ObservedGeneration < new.ObservedGeneration {
+					r.Status.Conditions[i].ObservedGeneration = new.ObservedGeneration
 				}
 				continue
 			}
@@ -149,8 +149,8 @@ func (r *ArgoCDProjectRole) SetConditions(c ...Condition) {
 
 			if existing.Equal(new) {
 				exists = true
-				if existing.ObservedGeneration < new.ObservedGeneration {
-					existing.ObservedGeneration = new.ObservedGeneration
+				if r.Status.Conditions[i].ObservedGeneration < new.ObservedGeneration {
+					r.Status.Conditions[i].ObservedGeneration = new.ObservedGeneration
 				}
 				continue
 			}
@@ -186,8 +186,8 @@ func (rb *ArgoCDRoleBinding) SetConditions(c ...Condition) {
 
 			if existing.Equal(new) {
 				exists = true
-				if existing.ObservedGeneration < new.ObservedGeneration {
-					existing.ObservedGeneration = new.ObservedGeneration
+				if rb.Status.Conditions[i].ObservedGeneration < new.ObservedGeneration {
+					rb.Status.Conditions[i].ObservedGeneration = new.ObservedGeneration
 				}
 				continue
 			}
@@ -215,8 +215,8 @@ func (rb *ArgoCDProjectRoleBinding) SetConditions(c ...Condition) {
 
 			if existing.Equal(new) {
 				exists = true
-				if existing.ObservedGeneration < new.ObservedGeneration {
-					existing.ObservedGeneration = new.ObservedGeneration
+				if rb.Status.Conditions[i].ObservedGeneration < new.ObservedGeneration {
+					rb.Status.Conditions[i].ObservedGeneration = new.ObservedGeneration
 				}
 				continue
 			}
