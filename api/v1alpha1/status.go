@@ -112,8 +112,8 @@ func (r *ArgoCDRole) SetConditions(c ...Condition) {
 
 			if existing.Equal(new) {
 				exists = true
-				if existing.ObservedGeneration < new.ObservedGeneration {
-					existing.ObservedGeneration = new.ObservedGeneration
+				if r.Status.Conditions[i].ObservedGeneration < new.ObservedGeneration {
+					r.Status.Conditions[i].ObservedGeneration = new.ObservedGeneration
 				}
 				continue
 			}
@@ -139,6 +139,43 @@ func (r *ArgoCDRole) HasArgoCDRoleBindingRef() bool {
 // of the same type. This is a no-op if all supplied conditions are identical,
 // ignoring the last transition time, to those already set.
 // Observed generation is updated if higher than the existing one.
+func (r *ArgoCDProjectRole) SetConditions(c ...Condition) {
+	for _, new := range c {
+		exists := false
+		for i, existing := range r.Status.Conditions {
+			if existing.Type != new.Type {
+				continue
+			}
+
+			if existing.Equal(new) {
+				exists = true
+				if r.Status.Conditions[i].ObservedGeneration < new.ObservedGeneration {
+					r.Status.Conditions[i].ObservedGeneration = new.ObservedGeneration
+				}
+				continue
+			}
+
+			r.Status.Conditions[i] = new
+			exists = true
+		}
+		if !exists {
+			r.Status.Conditions = append(r.Status.Conditions, new)
+		}
+	}
+}
+
+func (r *ArgoCDProjectRole) SetArgoCDProjectRoleBindingRef(ref string) {
+	r.Status.ArgoCDProjectRoleBindingRef = ref
+}
+
+func (r *ArgoCDProjectRole) HasArgoCDProjectRoleBindingRef() bool {
+	return r.Status.ArgoCDProjectRoleBindingRef != ""
+}
+
+// SetConditions sets the supplied conditions, replacing any existing conditions
+// of the same type. This is a no-op if all supplied conditions are identical,
+// ignoring the last transition time, to those already set.
+// Observed generation is updated if higher than the existing one.
 func (rb *ArgoCDRoleBinding) SetConditions(c ...Condition) {
 	for _, new := range c {
 		exists := false
@@ -149,8 +186,37 @@ func (rb *ArgoCDRoleBinding) SetConditions(c ...Condition) {
 
 			if existing.Equal(new) {
 				exists = true
-				if existing.ObservedGeneration < new.ObservedGeneration {
-					existing.ObservedGeneration = new.ObservedGeneration
+				if rb.Status.Conditions[i].ObservedGeneration < new.ObservedGeneration {
+					rb.Status.Conditions[i].ObservedGeneration = new.ObservedGeneration
+				}
+				continue
+			}
+
+			rb.Status.Conditions[i] = new
+			exists = true
+		}
+		if !exists {
+			rb.Status.Conditions = append(rb.Status.Conditions, new)
+		}
+	}
+}
+
+// SetConditions sets the supplied conditions, replacing any existing conditions
+// of the same type. This is a no-op if all supplied conditions are identical,
+// ignoring the last transition time, to those already set.
+// Observed generation is updated if higher than the existing one.
+func (rb *ArgoCDProjectRoleBinding) SetConditions(c ...Condition) {
+	for _, new := range c {
+		exists := false
+		for i, existing := range rb.Status.Conditions {
+			if existing.Type != new.Type {
+				continue
+			}
+
+			if existing.Equal(new) {
+				exists = true
+				if rb.Status.Conditions[i].ObservedGeneration < new.ObservedGeneration {
+					rb.Status.Conditions[i].ObservedGeneration = new.ObservedGeneration
 				}
 				continue
 			}

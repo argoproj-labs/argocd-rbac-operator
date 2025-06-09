@@ -1,0 +1,21 @@
+apiVersion: rbac-operator.argoproj-labs.io/v1alpha1
+kind: ArgoCDProjectRole
+metadata:
+  labels:
+    app.kubernetes.io/name: argocd-rbac-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: test-project-role
+spec:
+  description: "Test role for ArgoCD's AppProjects"
+  rules:
+  - resource: clusters
+    verbs:
+    - get
+    - watch
+    objects:
+    - "*"
+  - resource: applications
+    verbs:
+    - get
+    objects:
+    - "*"

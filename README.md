@@ -2,14 +2,14 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/argoproj-labs/argocd-rbac-operator)](https://goreportcard.com/report/github.com/argoproj-labs/argocd-rbac-operator)
 [![go.mod Go version](https://img.shields.io/github/go-mod/go-version/argoproj-labs/argocd-rbac-operator)](https://github.com/argoproj-labs/argocd-rbac-operator)
-[![GitHub Release](https://img.shields.io/github/v/release/argoproj-labs/argocd-rbac-operator)](https://github.com/argoproj-labs/argocd-rbac-operator/releases/tag/v0.1.9)
+[![GitHub Release](https://img.shields.io/github/v/release/argoproj-labs/argocd-rbac-operator)](https://github.com/argoproj-labs/argocd-rbac-operator/releases/tag/v0.2.0)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/argocd-rbac-operator)](https://artifacthub.io/packages/search?repo=argocd-rbac-operator)
 
 Kubernetes Operator for Argo CD RBAC Management.
 
 ## Introduction
 
-The Argo CD RBAC Operator provides a CRD based API for the RBAC management of Argo CD. It provides a structured and easy to use way to define RBAC policies. The Operator uses the CRs as a single source of truth for RBAC management and converts them into a policy string that is patched into the Argo CD RBAC ConfigMap.
+The Argo CD RBAC Operator provides a CRD based API for the RBAC management of Argo CD. It provides a structured and easy to use way to define RBAC policies. The Operator uses the CRs as a single source of truth for RBAC management and converts them into a policy string that is patched into the Argo CD RBAC ConfigMap or AppProjects.
 
 ## Installation
 
@@ -64,6 +64,8 @@ helm install argocd-rbac-operator argocd-rbac-operator/argocd-rbac-operator -f v
 
 ## Usage
 
+### Global-scoped RBAC
+
 The following example shows a manifest to create a new ArgoCDRole `test-role`:
 
 ```yaml
@@ -105,7 +107,7 @@ spec:
     name: "test-role"
 ```
 
-### Create
+#### Create ArgoCDRoles and ArgoCDRoleBindings
 
 Make sure that the `argocd` Namespace exists, so that the ConfigMap can be created properly.
 
@@ -141,7 +143,7 @@ metadata:
   namespace: argocd
 ```
 
-### Delete
+#### Delete ArgoCDRoles and ArgoCDRoleBindings
 
 To delete a Role you can use `kubectl`
 
@@ -152,16 +154,138 @@ kubectl delete argocdrolebinding.rbac-operator.argoproj-labs.io/test-role-bindin
 
 After the Resource is deleted, the policy string will be also deleted from the RBAC-CM.
 
-### Change the Policy.CSV
+#### Change the Policy.CSV
 
 To change the policy.csv you have to make changes in the `internal/controller/common/defaults.go` file.
 
-### Deployment types
+#### Deployment types
 
 As for now only single Argo CD deployment type is supported. The default Argo CD namespace is defined as `argocd`, to change that you have to provide a flag `--argocd-rbac-cm-namespace="your-argocd-namespace"`.
 
+### AppProject-scoped RBAC
+
+The following example shows a manifest to create a new ArgoCDProjectRole `test-project-role`:
+
+```yaml
+apiVersion: rbac-operator.argoproj-labs.io/v1alpha1
+kind: ArgoCDProjectRole
+metadata:
+  name: test-project-role
+  namespace: test-ns
+spec:
+  description: "Test role for ArgoCD's AppProjects"
+  rules:
+  - resource: clusters
+    verbs:
+    - get
+    - watch
+    objects:
+    - "*"
+  - resource: applications
+    verbs:
+    - get
+    objects:
+    - "*"
+```
+
+And a ArgoCDProjectRoleBinding `test-project-role-binding` to bind the specified role to a single or multiple AppProjects:
+
+```yaml
+apiVersion: rbac-operator.argoproj-labs.io/v1alpha1
+kind: ArgoCDProjectRoleBinding
+metadata:
+  name: test-project-role-binding
+  namespace: test-ns
+spec:
+  argocdProjectRoleRef: 
+    name: test-project-role
+  subjects:
+  - appProjectRef: test-appproject-1
+    groups:
+    - test-group-1
+    - test-group-2
+  - appProjectRef: test-appproject-2
+    groups:
+    - test-group-3
+    - test-group-4
+```
+
+#### Create ArgoCDProjectRoles and ArgoCDProjectRoleBindings
+
+Create a new ArgoCDProjectRole and ArgoCDProjectRoleBinding using the provided example. (Make sure that both CRs and AppProjects are created in the same Namespace)
+
+```bash
+kubectl create -f test-project-role.yaml
+kubectl create -f test-project-role-binding.yaml
+```
+
+After the reconciliation a following role will be added to the specified AppProjects:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: test-appproject-1
+  namespace: test-ns
+spec:
+  description: "Test AppProject 1 for ArgoCD's RBAC Operator"
+  roles:
+  ...
+  - description: Test role for ArgoCD's AppProjects
+    groups:
+      - test-group-1
+      - test-group-2
+    name: test-project-role
+    policies:
+      - p, proj:test-appproject-1:test-project-role, clusters, get, *, allow
+      - p, proj:test-appproject-1:test-project-role, clusters, watch, *, allow
+      - p, proj:test-appproject-1:test-project-role, applications, get, *, allow
+  ...
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: test-appproject-2
+  namespace: test-ns
+spec:
+  description: "Test AppProject 2 for ArgoCD's RBAC Operator"
+  roles:
+  ...
+  - description: Test role for ArgoCD's AppProjects
+    groups:
+      - test-group-3
+      - test-group-4
+    name: test-project-role
+    policies:
+      - p, proj:test-appproject-2:test-project-role, clusters, get, *, allow
+      - p, proj:test-appproject-2:test-project-role, clusters, watch, *, allow
+      - p, proj:test-appproject-2:test-project-role, applications, get, *, allow
+  ...
+```
+
+#### Changes to ArgoCDProjectRoles and ArgoCDProjectRoleBindings
+
+If changes there made to the CRs, they also will be reflected in referenced AppProjects:
+
+- changes to `spec.rules` of ArgoCDProjectRole
+  - will be patched to AppProject on next reconcile of ArgoCDProjectRoleBinding
+- changes to `spec.subjects` of ArgoCDProjectRoleBindings
+  - deletion of a subject, will delete the role in AppProject
+  - change to subject will be reflected in AppProject on next reconcile
+
+#### Delete ArgoCDProjectRoles and ArgoCDProjectRoleBindings
+
+To delete a Role you can use `kubectl`
+
+```bash
+kubectl delete argocdprojectroles test-project-role
+kubectl delete argocdprojectrolebindings test-project-role-binding
+```
+
+After the deletion of the Role or RoleBinding, the Role will also be deleted in AppProject.
+
 ## Roadmap
 
-- extend the operator with functionality to manage Argo CD AppProject RBAC
-- achieve test coverage of >= 80% (current: ~75%)
-- allow management for multi-instances set-up of Argo CD
+- [x] extend the operator with functionality to manage Argo CD AppProject RBAC
+- [ ] achieve test coverage of >= 80% (current: ~75%)
+- [ ] allow management for multi-instances set-up of Argo CD

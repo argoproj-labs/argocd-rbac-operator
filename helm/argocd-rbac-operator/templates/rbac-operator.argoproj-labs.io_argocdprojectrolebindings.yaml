@@ -4,20 +4,21 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.18.0
-  name: argocdrolebindings.rbac-operator.argoproj-labs.io
+  name: argocdprojectrolebindings.rbac-operator.argoproj-labs.io
 spec:
   group: rbac-operator.argoproj-labs.io
   names:
-    kind: ArgoCDRoleBinding
-    listKind: ArgoCDRoleBindingList
-    plural: argocdrolebindings
-    singular: argocdrolebinding
+    kind: ArgoCDProjectRoleBinding
+    listKind: ArgoCDProjectRoleBindingList
+    plural: argocdprojectrolebindings
+    singular: argocdprojectrolebinding
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ArgoCDRoleBinding is the Schema for the argocdrolebindings API
+        description: ArgoCDProjectRoleBinding is the Schema for the argocdprojectrolebindings
+          API.
         properties:
           apiVersion:
             description: |-
@@ -37,46 +38,55 @@ spec:
           metadata:
             type: object
           spec:
-            description: ArgoCDRoleBindingSpec defines the desired state of ArgoCDRoleBinding
+            description: ArgoCDProjectRoleBindingSpec defines the desired state of
+              ArgoCDProjectRoleBinding.
             properties:
-              argocdRoleRef:
-                description: ArgocdRoleRef defines the reference to the role being
-                  granted.
+              argocdProjectRoleRef:
+                description: ArgocdProjectRoleRef defines the reference to the role
+                  being granted.
                 properties:
                   name:
-                    description: Name of the ArgoCDRole. Should not start with "role:"
+                    description: Name of the ArgoCDProjectRole. Should not start with
+                      "role:"
                     type: string
                 required:
                 - name
                 type: object
               subjects:
-                description: List of subjects being bound to ArgoCDRole (argocdRoleRef).
+                description: List of subjects being bound to ArgoCDProjectRole (argocdProjectRoleRef).
                 items:
-                  description: GlobalSubject defines the subject being bound to ArgoCDRole.
+                  description: AppProjectSubject defines the subject being bound to
+                    ArgoCDProjectRole.
                   properties:
-                    kind:
-                      description: Kind of the subject (sso, local or role).
-                      enum:
-                      - sso
-                      - local
-                      - role
+                    appProjectRef:
+                      description: Reference to the AppProject the ArgoCDRole is bound
+                        to.
                       type: string
-                    name:
-                      description: Name of the subject. If Kind is "role", it shouldn't
-                        start with "role:"
-                      type: string
+                    groups:
+                      description: List of groups the role will be granted to.
+                      items:
+                        type: string
+                      type: array
                   required:
-                  - kind
-                  - name
+                  - appProjectRef
+                  - groups
                   type: object
+                minItems: 1
                 type: array
             required:
-            - argocdRoleRef
+            - argocdProjectRoleRef
             - subjects
             type: object
           status:
-            description: ArgoCDRoleBindingStatus defines the observed state of ArgoCDRoleBinding
+            description: ArgoCDProjectRoleBindingStatus defines the observed state
+              of ArgoCDProjectRoleBinding.
             properties:
+              appProjectsBound:
+                description: AppProjectsBound is a list of AppProjects that the role
+                  is bound to.
+                items:
+                  type: string
+                type: array
               conditions:
                 description: Conditions defines the list of conditions.
                 items:

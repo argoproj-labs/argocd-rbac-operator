@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.18.0
-  name: argocdrolebindings.rbac-operator.argoproj-labs.io
+  name: argocdprojectroles.rbac-operator.argoproj-labs.io
 spec:
   group: rbac-operator.argoproj-labs.io
   names:
-    kind: ArgoCDRoleBinding
-    listKind: ArgoCDRoleBindingList
-    plural: argocdrolebindings
-    singular: argocdrolebinding
+    kind: ArgoCDProjectRole
+    listKind: ArgoCDProjectRoleList
+    plural: argocdprojectroles
+    singular: argocdprojectrole
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ArgoCDRoleBinding is the Schema for the argocdrolebindings API
+        description: ArgoCDProjectRole is the Schema for the argocdprojectroles API.
         properties:
           apiVersion:
             description: |-
@@ -37,46 +37,55 @@ spec:
           metadata:
             type: object
           spec:
-            description: ArgoCDRoleBindingSpec defines the desired state of ArgoCDRoleBinding
+            description: ArgoCDProjectRoleSpec defines the desired state of an AppProject
+              scoped Role (patched to binded AppProject).
             properties:
-              argocdRoleRef:
-                description: ArgocdRoleRef defines the reference to the role being
-                  granted.
-                properties:
-                  name:
-                    description: Name of the ArgoCDRole. Should not start with "role:"
-                    type: string
-                required:
-                - name
-                type: object
-              subjects:
-                description: List of subjects being bound to ArgoCDRole (argocdRoleRef).
+              description:
+                description: Description of the role.
+                type: string
+              rules:
                 items:
-                  description: GlobalSubject defines the subject being bound to ArgoCDRole.
+                  description: Rules define the desired set of permissions.
                   properties:
-                    kind:
-                      description: Kind of the subject (sso, local or role).
+                    objects:
+                      description: List of resource's objects the permissions are
+                        granted for.
+                      items:
+                        type: string
+                      type: array
+                    resource:
+                      description: Target resource type.
                       enum:
-                      - sso
-                      - local
-                      - role
+                      - clusters
+                      - applications
+                      - repositories
+                      - logs
+                      - exec
+                      - projects
                       type: string
-                    name:
-                      description: Name of the subject. If Kind is "role", it shouldn't
-                        start with "role:"
-                      type: string
+                    verbs:
+                      description: Verbs define the operations that are being performed
+                        on the resource.
+                      items:
+                        type: string
+                      type: array
                   required:
-                  - kind
-                  - name
+                  - objects
+                  - resource
+                  - verbs
                   type: object
                 type: array
             required:
-            - argocdRoleRef
-            - subjects
+            - description
+            - rules
             type: object
           status:
-            description: ArgoCDRoleBindingStatus defines the observed state of ArgoCDRoleBinding
+            description: ArgoCDProjectRoleStatus defines the observed state of ArgoCDProjectRole.
             properties:
+              argocdProjectRoleBindingRef:
+                description: argocdProjectRoleBindingRef defines the reference to
+                  the ArgoCDProjectRoleBinding Resource.
+                type: string
               conditions:
                 description: Conditions defines the list of conditions.
                 items:

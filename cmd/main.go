@@ -25,6 +25,7 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	argocdv1alpha "github.com/argoproj/argo-cd/v3/pkg/apis/application/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -46,6 +47,7 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(argocdv1alpha.AddToScheme(scheme))
 
 	utilruntime.Must(argoprojiov1alpha1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
@@ -144,6 +146,20 @@ func main() {
 		ArgoCDRBACConfigMapNamespace: argoCDRBACConfigMapNamespace,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ArgoCDRoleBinding")
+		os.Exit(1)
+	}
+	if err := (&controller.ArgoCDProjectRoleReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "ArgoCDProjectRole")
+		os.Exit(1)
+	}
+	if err := (&controller.ArgoCDProjectRoleBindingReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "ArgoCDProjectRoleBinding")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

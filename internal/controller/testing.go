@@ -20,18 +20,18 @@ import (
 	"fmt"
 	"time"
 
+	argocdv1alpha "github.com/argoproj/argo-cd/v3/pkg/apis/application/v1alpha1"
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
-
-	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
-
-	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
-	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 )
 
 const (
@@ -41,6 +41,11 @@ const (
 
 	testRoleName        = "test-role"
 	testRoleBindingName = "test-role-binding"
+
+	testProjectRoleName        = "test-project-role"
+	testProjectRoleBindingName = "test-project-role-binding"
+
+	testAppProjectName = "test-appproject"
 )
 
 func ZapLogger(development bool) logr.Logger {
@@ -48,6 +53,15 @@ func ZapLogger(development bool) logr.Logger {
 }
 
 type SchemeOpt func(*runtime.Scheme) error
+
+func addArgoCDPkgToScheme() SchemeOpt {
+	return func(s *runtime.Scheme) error {
+		if err := argocdv1alpha.AddToScheme(s); err != nil {
+			return fmt.Errorf("failed to add ArgoCD API to scheme: %w", err)
+		}
+		return nil
+	}
+}
 
 func makeTestArgoCDRoleReconciler(client client.Client, sch *runtime.Scheme) *ArgoCDRoleReconciler {
 	return &ArgoCDRoleReconciler{
@@ -64,6 +78,20 @@ func makeTestArgoCDRoleBindingReconciler(client client.Client, sch *runtime.Sche
 		Scheme:                       sch,
 		ArgoCDRBACConfigMapName:      testRBACCMName,
 		ArgoCDRBACConfigMapNamespace: testRBACCMNamespace,
+	}
+}
+
+func makeTestArgoCDProjectRoleReconciler(client client.Client, sch *runtime.Scheme) *ArgoCDProjectRoleReconciler {
+	return &ArgoCDProjectRoleReconciler{
+		Client: client,
+		Scheme: sch,
+	}
+}
+
+func makeTestArgoCDProjectRoleBindingReconciler(client client.Client, sch *runtime.Scheme) *ArgoCDProjectRoleBindingReconciler {
+	return &ArgoCDProjectRoleBindingReconciler{
+		Client: client,
+		Scheme: sch,
 	}
 }
 
@@ -86,6 +114,8 @@ func makeTestReconcilerScheme(schOpts ...SchemeOpt) *runtime.Scheme {
 	return s
 }
 
+// Global RBAC objects used in tests
+
 type argocdRoleOpt func(*rbacoperatorv1alpha1.ArgoCDRole)
 
 type argocdRoleBindingOpt func(*rbacoperatorv1alpha1.ArgoCDRoleBinding)
@@ -97,7 +127,7 @@ func makeTestRole(opts ...argocdRoleOpt) *rbacoperatorv1alpha1.ArgoCDRole {
 			Namespace: testNamespace,
 		},
 		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
-			Rules: []rbacoperatorv1alpha1.Rule{
+			Rules: []rbacoperatorv1alpha1.GlobalRule{
 				{
 					Resource: "applications",
 					Verbs:    []string{"get", "list"},
@@ -122,7 +152,7 @@ func makeTestRoleBindingWithRoleSubject(opts ...argocdRoleBindingOpt) *rbacopera
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: testRoleName,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "role",
 					Name: "rb-role-test",
@@ -146,7 +176,7 @@ func makeTestRoleBindingWithSSOSubject(opts ...argocdRoleBindingOpt) *rbacoperat
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: testRoleName,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "sso",
 					Name: "gosha",
@@ -170,7 +200,7 @@ func makeTestRoleBindingWithLocalSubject(opts ...argocdRoleBindingOpt) *rbacoper
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: testRoleName,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "local",
 					Name: "localUser",
@@ -194,7 +224,7 @@ func makeTestRoleBindingForBuiltInAdmin(opts ...argocdRoleBindingOpt) *rbacopera
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: common.ArgoCDRoleAdmin,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "role",
 					Name: "rb-role-test",
@@ -218,7 +248,7 @@ func makeTestRoleBindingForBuiltInReadOnly(opts ...argocdRoleBindingOpt) *rbacop
 			ArgoCDRoleRef: rbacoperatorv1alpha1.ArgoCDRoleRef{
 				Name: common.ArgoCDRoleReadOnly,
 			},
-			Subjects: []rbacoperatorv1alpha1.Subject{
+			Subjects: []rbacoperatorv1alpha1.GlobalSubject{
 				{
 					Kind: "role",
 					Name: "rb-role-test",
@@ -360,7 +390,7 @@ func addFinalizerRole() argocdRoleOpt {
 func roleDeletedAt(now time.Time) argocdRoleOpt {
 	return func(r *rbacoperatorv1alpha1.ArgoCDRole) {
 		wrapped := metav1.NewTime(now)
-		r.ObjectMeta.DeletionTimestamp = &wrapped
+		r.DeletionTimestamp = &wrapped
 	}
 }
 
@@ -379,6 +409,152 @@ func addFinalizerRoleBinding() argocdRoleBindingOpt {
 func roleBindingDeletedAt(now time.Time) argocdRoleBindingOpt {
 	return func(r *rbacoperatorv1alpha1.ArgoCDRoleBinding) {
 		wrapped := metav1.NewTime(now)
-		r.ObjectMeta.DeletionTimestamp = &wrapped
+		r.DeletionTimestamp = &wrapped
 	}
+}
+
+// AppProject RBAC Objects used in tests
+
+// Options for ArgoCDProjectRole and ArgoCDProjectRoleBinding
+type argocdProjectRoleOpt func(*rbacoperatorv1alpha1.ArgoCDProjectRole)
+
+func addFinalizerProjectRole() argocdProjectRoleOpt {
+	return func(r *rbacoperatorv1alpha1.ArgoCDProjectRole) {
+		r.Finalizers = append(r.Finalizers, rbacoperatorv1alpha1.ArgoCDProjectRoleFinalizerName)
+	}
+}
+
+func projectRoleDeletedAt(now time.Time) argocdProjectRoleOpt {
+	return func(r *rbacoperatorv1alpha1.ArgoCDProjectRole) {
+		wrapped := metav1.NewTime(now)
+		r.DeletionTimestamp = &wrapped
+	}
+}
+
+func addProjectRoleBinding(roleBindingName string) argocdProjectRoleOpt {
+	return func(r *rbacoperatorv1alpha1.ArgoCDProjectRole) {
+		r.Status.ArgoCDProjectRoleBindingRef = roleBindingName
+	}
+}
+
+type argocdProjectRoleBindingOpt func(*rbacoperatorv1alpha1.ArgoCDProjectRoleBinding)
+
+func addFinalizerProjectRoleBinding() argocdProjectRoleBindingOpt {
+	return func(r *rbacoperatorv1alpha1.ArgoCDProjectRoleBinding) {
+		r.Finalizers = append(r.Finalizers, rbacoperatorv1alpha1.ArgoCDProjectRoleBindingFinalizerName)
+	}
+}
+
+func projectRoleBindingDeletedAt(now time.Time) argocdProjectRoleBindingOpt {
+	return func(r *rbacoperatorv1alpha1.ArgoCDProjectRoleBinding) {
+		wrapped := metav1.NewTime(now)
+		r.DeletionTimestamp = &wrapped
+	}
+}
+
+func addBoundAppProjects(appProjects []string) argocdProjectRoleBindingOpt {
+	return func(r *rbacoperatorv1alpha1.ArgoCDProjectRoleBinding) {
+		r.Status.AppProjectsBound = appProjects
+	}
+}
+
+type argocdAppProjectOpt func(*argocdv1alpha.AppProject)
+
+func addTestRoleToAppProject() argocdAppProjectOpt {
+	return func(ap *argocdv1alpha.AppProject) {
+		ap.Spec.Roles = append(ap.Spec.Roles, argocdv1alpha.ProjectRole{
+			Name:        testProjectRoleName,
+			Description: "Test Project Role",
+			Policies: []string{
+				fmt.Sprintf("p, proj:%s:%s, applications, get, */*, allow", testAppProjectName, testProjectRoleName),
+				fmt.Sprintf("p, proj:%s:%s, applications, list, */*, allow", testAppProjectName, testProjectRoleName),
+				fmt.Sprintf("p, proj:%s:%s, projects, get, *, allow", testAppProjectName, testProjectRoleName),
+			},
+			Groups: []string{"group1", "group2"},
+		})
+	}
+}
+
+func setAppProjectName(name string) argocdAppProjectOpt {
+	return func(ap *argocdv1alpha.AppProject) {
+		ap.Name = name
+	}
+}
+
+// AppProject RBAC Objects
+
+func makeTestAppProject(opts ...argocdAppProjectOpt) *argocdv1alpha.AppProject {
+	ap := &argocdv1alpha.AppProject{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      testAppProjectName,
+			Namespace: testNamespace,
+		},
+		Spec: argocdv1alpha.AppProjectSpec{
+			Description: "Test App Project",
+			Roles: []argocdv1alpha.ProjectRole{
+				{
+					Name:        "existing-role",
+					Description: "Existing Role",
+				},
+			},
+		},
+	}
+	for _, opt := range opts {
+		opt(ap)
+	}
+	return ap
+}
+
+func makeTestProjectRole(opts ...argocdProjectRoleOpt) *rbacoperatorv1alpha1.ArgoCDProjectRole {
+	r := &rbacoperatorv1alpha1.ArgoCDProjectRole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      testProjectRoleName,
+			Namespace: testNamespace,
+		},
+		Spec: rbacoperatorv1alpha1.ArgoCDProjectRoleSpec{
+			Description: "Test Project Role",
+			Rules: []rbacoperatorv1alpha1.ProjectRule{
+				{
+					Resource: "applications",
+					Verbs:    []string{"get", "list"},
+					Objects:  []string{"*/*"},
+				},
+				{
+					Resource: "projects",
+					Verbs:    []string{"get"},
+					Objects:  []string{"*"},
+				},
+			},
+		},
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+	return r
+}
+
+func makeTestProjectRoleBinding(opts ...argocdProjectRoleBindingOpt) *rbacoperatorv1alpha1.ArgoCDProjectRoleBinding {
+	rb := &rbacoperatorv1alpha1.ArgoCDProjectRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      testProjectRoleBindingName,
+			Namespace: testNamespace,
+		},
+		Spec: rbacoperatorv1alpha1.ArgoCDProjectRoleBindingSpec{
+			ArgoCDProjectRoleRef: rbacoperatorv1alpha1.ArgoCDProjectRoleRef{
+				Name: testProjectRoleName,
+			},
+			Subjects: []rbacoperatorv1alpha1.AppProjectSubject{
+				{
+					AppProjectRef: testAppProjectName,
+					Groups:        []string{"group1", "group2"},
+				},
+			},
+		},
+	}
+
+	for _, opt := range opts {
+		opt(rb)
+	}
+	return rb
 }

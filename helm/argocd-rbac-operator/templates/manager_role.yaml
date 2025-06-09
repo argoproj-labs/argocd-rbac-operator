@@ -13,8 +13,18 @@ rules:
   - list
   - watch
 - apiGroups:
+  - argoproj.io
+  resources:
+  - appprojects
+  verbs:
+  - get
+  - list
+  - patch
+- apiGroups:
   - rbac-operator.argoproj-labs.io
   resources:
+  - argocdprojectrolebindings
+  - argocdprojectroles
   - argocdrolebindings
   - argocdroles
   verbs:
@@ -22,9 +32,18 @@ rules:
 - apiGroups:
   - rbac-operator.argoproj-labs.io
   resources:
+  - argocdprojectrolebindings/finalizers
+  - argocdprojectrolebindings/status
+  - argocdprojectroles/finalizers
   - argocdrolebindings/finalizers
   - argocdrolebindings/status
   - argocdroles/finalizers
+  verbs:
+  - '*'
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdprojectroles/status
   verbs:
   - '*'
 - apiGroups:
