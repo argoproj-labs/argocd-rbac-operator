@@ -2,6 +2,30 @@ apiVersion: v1
 entries:
   argocd-rbac-operator:
   - apiVersion: v2
+    appVersion: v0.2.0
+    created: "2025-06-09T13:03:45.093265373Z"
+    description: A Helm chart for Argo CD RBAC Operator, a Kubernetes Operator for
+      Argo CD RBAC Management.
+    digest: 35015b0fdb0b3370b2415f7e710e77421d9e0bb8ced308ca605cd023832eb7fe
+    home: https://github.com/argoproj-labs/argocd-rbac-operator
+    icon: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
+    keywords:
+    - argocd
+    - operator
+    - rbac
+    - argoproj-labs
+    maintainers:
+    - email: gg.khrmv@gmail.com
+      name: Gosha Khromov
+      url: https://github.com/ggkhrmv
+    name: argocd-rbac-operator
+    sources:
+    - https://github.com/argoproj-labs/argocd-rbac-operator
+    type: application
+    urls:
+    - https://github.com/argoproj-labs/argocd-rbac-operator/releases/download/argocd-rbac-operator-0.4.0/argocd-rbac-operator-0.4.0.tgz
+    version: 0.4.0
+  - apiVersion: v2
     appVersion: v0.1.9
     created: "2025-05-31T00:05:16.331003313Z"
     description: A Helm chart for Argo CD RBAC Operator, a Kubernetes Operator for
@@ -121,4 +145,4 @@ entries:
     urls:
     - https://github.com/argoproj-labs/argocd-rbac-operator/releases/download/argocd-rbac-operator-0.1.0/argocd-rbac-operator-0.1.0.tgz
     version: 0.1.0
-generated: "2025-05-31T00:05:16.331041246Z"
+generated: "2025-06-09T13:03:45.093288376Z"
