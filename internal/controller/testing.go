@@ -344,7 +344,7 @@ func makeTestCM_ArgoCDRole_WithRoleBindingLocalSubject_Expected() *corev1.Config
 	return cm
 }
 
-func makeTestCM_BuiltInAdmin_WithRoleBinding_Expected() *corev1.ConfigMap {
+func makeTestCM_BuiltInAdmin_WithRoleBinding_Expected(rbNamespace string) *corev1.ConfigMap {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testRBACCMName,
@@ -352,13 +352,13 @@ func makeTestCM_BuiltInAdmin_WithRoleBinding_Expected() *corev1.ConfigMap {
 		},
 		Data: map[string]string{
 			"policy.csv": "",
-			fmt.Sprintf("policy.%s.%s.csv", testRBACCMNamespace, common.ArgoCDRoleAdmin): fmt.Sprintf("g, role:rb-role-test, role:%s\n", common.ArgoCDRoleAdmin),
+			fmt.Sprintf("policy.%s.%s.csv", rbNamespace, common.ArgoCDRoleAdmin): fmt.Sprintf("g, role:rb-role-test, role:%s\n", common.ArgoCDRoleAdmin),
 		},
 	}
 	return cm
 }
 
-func makeTestCM_BuiltInReadOnly_WithRoleBinding_Expected() *corev1.ConfigMap {
+func makeTestCM_BuiltInReadOnly_WithRoleBinding_Expected(rbNamespace string) *corev1.ConfigMap {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testRBACCMName,
@@ -366,7 +366,7 @@ func makeTestCM_BuiltInReadOnly_WithRoleBinding_Expected() *corev1.ConfigMap {
 		},
 		Data: map[string]string{
 			"policy.csv": "",
-			fmt.Sprintf("policy.%s.%s.csv", testRBACCMNamespace, common.ArgoCDRoleReadOnly): fmt.Sprintf("g, role:rb-role-test, role:%s\n", common.ArgoCDRoleReadOnly),
+			fmt.Sprintf("policy.%s.%s.csv", rbNamespace, common.ArgoCDRoleReadOnly): fmt.Sprintf("g, role:rb-role-test, role:%s\n", common.ArgoCDRoleReadOnly),
 		},
 	}
 	return cm

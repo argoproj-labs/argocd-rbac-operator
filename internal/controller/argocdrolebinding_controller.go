@@ -154,9 +154,9 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	switch roleName {
 	case "admin":
-		role = r.createBuiltInAdminRole()
+		role = r.createBuiltInAdminRole(rb.Namespace)
 	case "readonly":
-		role = r.createBuiltInReadOnlyRole()
+		role = r.createBuiltInReadOnlyRole(rb.Namespace)
 	}
 
 	r.Log.Info("Reconciling RBAC ConfigMap")
