@@ -205,11 +205,11 @@ func FetchObject(client client.Client, namespace string, name string, obj client
 }
 
 // createBuiltInAdminRole will return a new built-in ArgoCDRole with admin permissions.
-func (r *ArgoCDRoleBindingReconciler) createBuiltInAdminRole(bindingNS string) *rbacoperatorv1alpha1.ArgoCDRole {
+func (r *ArgoCDRoleBindingReconciler) createBuiltInAdminRole(rbNamespace string) *rbacoperatorv1alpha1.ArgoCDRole {
 	return &rbacoperatorv1alpha1.ArgoCDRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      common.ArgoCDRoleAdmin,
-			Namespace: bindingNS,
+			Namespace: rbNamespace,
 		},
 		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
 			Rules: []rbacoperatorv1alpha1.GlobalRule{
@@ -269,11 +269,11 @@ func (r *ArgoCDRoleBindingReconciler) createBuiltInAdminRole(bindingNS string) *
 }
 
 // createBuiltInReadOnlyRole will return a new built-in ArgoCDRole with read-only permissions.
-func (r *ArgoCDRoleBindingReconciler) createBuiltInReadOnlyRole(bindingNS string) *rbacoperatorv1alpha1.ArgoCDRole {
+func (r *ArgoCDRoleBindingReconciler) createBuiltInReadOnlyRole(rbNamespace string) *rbacoperatorv1alpha1.ArgoCDRole {
 	return &rbacoperatorv1alpha1.ArgoCDRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      common.ArgoCDRoleReadOnly,
-			Namespace: bindingNS,
+			Namespace: rbNamespace,
 		},
 		Spec: rbacoperatorv1alpha1.ArgoCDRoleSpec{
 			Rules: []rbacoperatorv1alpha1.GlobalRule{

@@ -333,7 +333,7 @@ func TestArgoCDRoleBindingReconciler_ReconcileBuiltInAdmin(t *testing.T) {
 	cm := &corev1.ConfigMap{}
 	err = reconciler.Get(context.TODO(), types.NamespacedName{Name: testRBACCMName, Namespace: testRBACCMNamespace}, cm)
 	assert.NoError(t, err)
-	resCM := makeTestCM_BuiltInAdmin_WithRoleBinding_Expected()
+	resCM := makeTestCM_BuiltInAdmin_WithRoleBinding_Expected(argocdRoleBinding.Namespace)
 	assert.Equal(t, resCM.Data, cm.Data)
 }
 
@@ -367,7 +367,7 @@ func TestArgoCDRoleBindingReconciler_ReconcileBuiltInReadOnly(t *testing.T) {
 	cm := &corev1.ConfigMap{}
 	err = reconciler.Get(context.TODO(), types.NamespacedName{Name: testRBACCMName, Namespace: testRBACCMNamespace}, cm)
 	assert.NoError(t, err)
-	resCM := makeTestCM_BuiltInReadOnly_WithRoleBinding_Expected()
+	resCM := makeTestCM_BuiltInReadOnly_WithRoleBinding_Expected(argocdRoleBinding.Namespace)
 	assert.Equal(t, resCM.Data, cm.Data)
 }
 
