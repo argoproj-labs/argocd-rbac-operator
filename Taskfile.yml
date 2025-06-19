@@ -240,10 +240,11 @@ tasks:
     desc: Internal task to install Go tools
     internal: true
     vars:
-      TOOL_NAME: '{{ base .TOOL_PATH }}'
+      TOOL_NAME:
+        sh: basename "{{.TOOL_PATH}}" | sed 's/-v.*$//'
     cmds:
       - GOBIN={{ .LOCALBIN }} go install {{ .TOOL }}
-      - mv {{ .LOCALBIN }}/$(echo {{ .TOOL_NAME }} | sed 's/-v.*$//') {{ .TOOL_PATH }}
+      - mv {{ .LOCALBIN }}/{{ .TOOL_NAME }} {{ .TOOL_PATH }}
 
   setup-localbin:
     desc: Ensure local binary directory exists
