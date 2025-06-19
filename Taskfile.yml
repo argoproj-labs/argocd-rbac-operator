@@ -23,7 +23,7 @@ vars:
 
   # Local binary directory
   LOCALBIN:
-    sh: echo "$(PWD)/bin"
+    sh: echo "$(pwd)/bin"
 
   # Tool versions
   KUSTOMIZE_VERSION: 'v5.6.0'
