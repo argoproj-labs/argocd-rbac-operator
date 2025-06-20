@@ -29,11 +29,14 @@ vars:
   KUSTOMIZE_VERSION: 'v5.6.0'
   CONTROLLER_GEN_VERSION: 'v0.18.0'
   GOLANGCI_LINT_VERSION: 'v2.1.6'
+  ENVTEST_K8S_VERSION: '1.30.0'
+  ENVTEST_VERSION: 'release-0.18'
 
   # Tool binaries
   KUSTOMIZE: '{{ .LOCALBIN }}/kustomize-{{ .KUSTOMIZE_VERSION }}'
   CONTROLLER_GEN: '{{ .LOCALBIN }}/controller-gen-{{ .CONTROLLER_GEN_VERSION }}'
   GOLANGCI_LIINT: '{{ .LOCALBIN }}/golangci-lint-{{ .GOLANGCI_LINT_VERSION }}'
+  ENVTEST: '{{ .LOCALBIN }}/setup-envtest-{{ .ENVTEST_VERSION }}'
 
   # Platforms
   PLATFORMS: 'linux/amd64,linux/arm64'
@@ -84,7 +87,8 @@ tasks:
       - generate
       - fmt
       - vet
-    cmd: go test -v ./... -coverprofile cover.out
+      - envtest
+    cmd: 'KUBEBUILDER_ASSETS="$({{ .ENVTEST }} use {{ .ENVTEST_K8S_VERSION }} --bin-dir {{ .LOCALBIN }} -p path)" go test -v ./... -coverprofile cover.out'
 
   lint:
     desc: Run golangci-lint linter
@@ -230,12 +234,26 @@ tasks:
     status:
       - test -f {{ .GOLANGCI_LIINT }}
 
+  envtest:
+    desc: Download setup-envtest locally if necessary
+    run: once
+    deps:
+      - setup-localbin
+    cmds:
+      - task: go-install-tool
+        vars:
+          TOOL_PATH: '{{ .ENVTEST }}'
+          TOOL: 'sigs.k8s.io/controller-runtime/tools/setup-envtest@{{ .ENVTEST_VERSION }}'
+    status:
+      - test -f {{ .ENVTEST }}
+
   install-tools:
     desc: Install all required tools
     deps:
       - kustomize
       - controller-gen
       - golangci-lint
+      - envtest
 
   # Internal tasks
 
@@ -244,7 +262,7 @@ tasks:
     internal: true
     vars:
       TOOL_NAME:
-        sh: basename "{{.TOOL_PATH}}" | sed 's/-v.*$//'
+        sh: basename "{{.TOOL_PATH}}" | sed -E 's/-(v[0-9]|release-[0-9]).*$//'
     cmds:
       - GOBIN={{ .LOCALBIN }} go install {{ .TOOL }}
       - mv {{ .LOCALBIN }}/{{ .TOOL_NAME }} {{ .TOOL_PATH }}
