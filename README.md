@@ -30,10 +30,10 @@ By default, the operator is installed into the `argocd-rbac-operator-system` nam
 
 #### Deploy Operator
 
-Deploy the operator. This will create all the necessary resources, including the namespace. For running the make command you need to install go-lang package on your system.
+Deploy the operator. This will create all the necessary resources, including the namespace. For running the task command you need to install [task](https://taskfile.dev/) and go-lang package on your system.
 
 ```bash
-make deploy
+task deploy
 ```
 
 The operator pod should start and enter a Running state after a few seconds.

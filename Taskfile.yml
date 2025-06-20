@@ -1,0 +1,279 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  # Automatic versioning
+  VERSION:
+    sh: git describe --tags --always --dirty --match "v*" 2>/dev/null || echo "dev"
+  LD_FLAGS: '-X github.com/argoproj-labs/argocd-rbac-operator/pkg/version.Version={{ .VERSION }}'
+
+  # Image base and tag
+  IMAGE_BASE: quay.io/argoprojlabs/argocd-rbac-operator
+  IMG: '{{ .IMAGE_BASE }}:{{ .VERSION }}'
+
+  # Go config
+  GOBIN:
+    sh: |
+      if [ -n "$(go env GOBIN)" ]; then
+        go env GOBIN
+      else
+        echo "$(go env GOPATH)/bin"
+      fi
+
+  # Local binary directory
+  LOCALBIN:
+    sh: echo "$(pwd)/bin"
+
+  # Tool versions
+  KUSTOMIZE_VERSION: 'v5.6.0'
+  CONTROLLER_GEN_VERSION: 'v0.18.0'
+  GOLANGCI_LINT_VERSION: 'v2.1.6'
+  ENVTEST_K8S_VERSION: '1.30.0'
+  ENVTEST_VERSION: 'release-0.18'
+
+  # Tool binaries
+  KUSTOMIZE: '{{ .LOCALBIN }}/kustomize-{{ .KUSTOMIZE_VERSION }}'
+  CONTROLLER_GEN: '{{ .LOCALBIN }}/controller-gen-{{ .CONTROLLER_GEN_VERSION }}'
+  GOLANGCI_LIINT: '{{ .LOCALBIN }}/golangci-lint-{{ .GOLANGCI_LINT_VERSION }}'
+  ENVTEST: '{{ .LOCALBIN }}/setup-envtest-{{ .ENVTEST_VERSION }}'
+
+  # Platforms
+  PLATFORMS: 'linux/amd64,linux/arm64'
+
+tasks:
+  default:
+    desc: Default task - build the project
+    deps:
+      - build
+  
+  # General tasks
+
+  help:
+    desc: Show help for all tasks
+    cmd: task --list
+
+  version:
+    desc: Print the current version
+    cmds:
+      - 'echo "Operator version: {{ .VERSION }}"'
+
+  # Dev tasks
+
+  manifests:
+    desc: Generate manifests
+    deps:
+      - controller-gen
+    cmd: '{{ .CONTROLLER_GEN }} rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases'
+
+  generate:
+    desc: Generate code
+    deps:
+      - controller-gen
+    cmd: '{{ .CONTROLLER_GEN }} object:headerFile="hack/boilerplate.go.txt" paths="./..."'
+
+  fmt:
+    desc: Format code
+    cmd: go fmt ./...
+
+  vet:
+    desc: Vet code
+    cmd: go vet ./...
+
+  test:
+    desc: Run tests
+    deps:
+      - manifests
+      - generate
+      - fmt
+      - vet
+      - envtest
+    cmds: 
+      - KUBEBUILDER_ASSETS=$({{ .ENVTEST }} use {{ .ENVTEST_K8S_VERSION }} --bin-dir {{ .LOCALBIN }} -p path)
+      - go test $(go list ./... | grep -v /e2e) -coverprofile cover.out
+
+  lint:
+    desc: Run golangci-lint linter
+    deps:
+      - golangci-lint
+    cmd: '{{ .GOLANGCI_LIINT }} run'
+
+  lint-fix:
+    desc: Run golangci-lint linter with fix
+    deps:
+      - golangci-lint
+    cmd: '{{ .GOLANGCI_LIINT }} run --fix'
+
+  # Build tasks
+
+  build:
+    desc: Build manager binary
+    deps:
+      - manifests
+      - generate
+      - fmt
+      - vet
+    cmd: go build -o bin/manager -ldflags '{{ .LD_FLAGS }}' cmd/main.go
+
+  run:
+    desc: Run a controller from your host
+    deps:
+      - manifests
+      - generate
+      - fmt
+      - vet
+    cmd: go run -ldflags '{{ .LD_FLAGS }}' ./cmd/main.go
+
+  docker-build:
+    desc: Build Docker image
+    deps:
+      - build
+    cmds:
+      - docker buildx build -t "{{ .IMG }}" --build-arg LD_FLAGS="{{ .LD_FLAGS }}" --load .
+      - 'echo "Built image: {{ .IMG }}"'
+
+  docker-push:
+    desc: Push Docker image
+    cmds:
+      - docker push '{{ .IMG }}'
+      - 'echo "Pushed image: {{ .IMG }}"'
+
+  docker-buildx:
+    desc: Build Docker image for multiple platforms using buildx
+    cmds:
+      - docker buildx create --name argocd-rbac-operator-builder --use || true
+      - docker buildx build --platform {{ .PLATFORMS }} --push --tag "{{ .IMG }}" --tag "{{ .IMAGE_BASE }}:latest" --build-arg LD_FLAGS="{{ .LD_FLAGS }}" .
+      - docker buildx rm argocd-rbac-operator-builder || true
+
+  build-installer:
+    desc: Generate a consolidated manifest with CRDs and deployment
+    deps:
+      - manifests
+      - generate
+      - kustomize
+    cmds:
+      - mkdir -p dist
+      - cd config/manager && {{ .KUSTOMIZE}} edit set image controller={{ .IMG }}
+      - '{{ .KUSTOMIZE }} build config/default > dist/install.yaml'
+
+  # Deploy tasks
+
+  install:
+    desc: Install CRDs inito the K8s cluster specified in ~/.kube/config
+    deps:
+      - manifests
+      - kustomize
+    cmd: '{{ .KUSTOMIZE }} build config/crd | kubectl apply -f -'
+
+  uninstall:
+    desc: Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with IGNORE_NOT_FOUND=true to ignore resource not found errors during deletion.
+    deps:
+      - manifests
+      - kustomize
+    vars:
+      IGNORE_NOT_FOUND: '{{ .IGNORE_NOT_FOUND | default "false" }}'
+    cmd: '{{ .KUSTOMIZE }} build config/crd | kubectl delete -f - --ignore-not-found={{ .IGNORE_NOT_FOUND }}'
+
+  deploy:
+    desc: Deploy the operator to the K8s cluster specified in ~/.kube/config
+    deps:
+      - manifests
+      - kustomize
+    cmds:
+      - cd config/manager && {{ .KUSTOMIZE }} edit set image controller={{ .IMG }}
+      - '{{ .KUSTOMIZE }} build config/default | kubectl apply --server-side=true -f -'
+      - '{{ .KUSTOMIZE }} build config/cm-role | kubectl apply --server-side=true -f -'
+
+  undeploy:
+    desc: Undeploy the operator from the K8s cluster specified in ~/.kube/config. Call with IGNORE_NOT_FOUND=true to ignore resource not found errors during deletion.
+    deps:
+      - manifests
+      - kustomize
+    vars:
+      IGNORE_NOT_FOUND: '{{ .IGNORE_NOT_FOUND | default "false" }}'
+    cmds:
+      - '{{ .KUSTOMIZE }} build config/default | kubectl delete --server-side=true -f - --ignore-not-found={{ .IGNORE_NOT_FOUND }}'
+      - '{{ .KUSTOMIZE }} build config/cm-role | kubectl delete --server-side=true -f - --ignore-not-found={{ .IGNORE_NOT_FOUND }}'
+
+  # Tool tasks
+
+  kustomize:
+    desc: Download kustomize locally if necessary
+    run: once
+    deps:
+      - setup-localbin
+    cmds:
+      - task: go-install-tool
+        vars:
+          TOOL_PATH: '{{ .KUSTOMIZE }}'
+          TOOL: 'sigs.k8s.io/kustomize/kustomize/v5@{{ .KUSTOMIZE_VERSION }}'
+    status:
+      - test -f {{ .KUSTOMIZE }}
+  
+  controller-gen:
+    desc: Download controller-gen locally if necessary
+    run: once
+    deps:
+      - setup-localbin
+    cmds:
+      - task: go-install-tool
+        vars:
+          TOOL_PATH: '{{ .CONTROLLER_GEN }}'
+          TOOL: 'sigs.k8s.io/controller-tools/cmd/controller-gen@{{ .CONTROLLER_GEN_VERSION }}'
+    status:
+      - test -f {{ .CONTROLLER_GEN }}
+
+  golangci-lint:
+    desc: Download golangci-lint locally if necessary
+    run: once
+    deps:
+      - setup-localbin
+    cmds:
+      - task: go-install-tool
+        vars:
+          TOOL_PATH: '{{ .GOLANGCI_LIINT }}'
+          TOOL: 'github.com/golangci/golangci-lint/v2/cmd/golangci-lint@{{ .GOLANGCI_LINT_VERSION }}'
+    status:
+      - test -f {{ .GOLANGCI_LIINT }}
+
+  envtest:
+    desc: Download setup-envtest locally if necessary
+    run: once
+    deps:
+      - setup-localbin
+    cmds:
+      - task: go-install-tool
+        vars:
+          TOOL_PATH: '{{ .ENVTEST }}'
+          TOOL: 'sigs.k8s.io/controller-runtime/tools/setup-envtest@{{ .ENVTEST_VERSION }}'
+    status:
+      - test -f {{ .ENVTEST }}
+
+  install-tools:
+    desc: Install all required tools
+    deps:
+      - kustomize
+      - controller-gen
+      - golangci-lint
+      - envtest
+
+  # Internal tasks
+
+  go-install-tool:
+    desc: Internal task to install Go tools
+    internal: true
+    vars:
+      TOOL_NAME:
+        sh: basename "{{.TOOL_PATH}}" | sed -E 's/-(v[0-9]|release-[0-9]).*$//'
+    cmds:
+      - GOBIN={{ .LOCALBIN }} go install {{ .TOOL }}
+      - mv {{ .LOCALBIN }}/{{ .TOOL_NAME }} {{ .TOOL_PATH }}
+
+  setup-localbin:
+    desc: Ensure local binary directory exists
+    run: once
+    internal: true
+    cmds:
+      - mkdir -p {{ .LOCALBIN }}
+    status: 
+      - test -d {{ .LOCALBIN }}
