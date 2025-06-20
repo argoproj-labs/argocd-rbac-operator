@@ -82,13 +82,16 @@ tasks:
 
   test:
     desc: Run tests
+    env:
+      KUBEBUILDER_ASSETS:
+        sh: '{{ .ENVTEST }} use {{ .ENVTEST_K8S_VERSION }} --bin-dir {{ .LOCALBIN }} -p path'
     deps:
       - manifests
       - generate
       - fmt
       - vet
       - envtest
-    cmd: 'KUBEBUILDER_ASSETS="$({{ .ENVTEST }} use {{ .ENVTEST_K8S_VERSION }} --bin-dir {{ .LOCALBIN }} -p path)" go test -v ./... -coverprofile cover.out'
+    cmd: go test $(go list ./... | grep -v /e2e) -coverprofile cover.out'
 
   lint:
     desc: Run golangci-lint linter
