@@ -282,6 +282,7 @@ After the deletion of the Role or RoleBinding, the Role will also be deleted in 
 | namespace.create | bool | `true` |  |
 | namespace.nameOverride | string | `""` |  |
 | nodeSelector | object | `{}` |  |
+| tolerations | object | `[]` |  |
 | readinessProbe.httpGet.path | string | `"/readyz"` |  |
 | readinessProbe.httpGet.port | int | `8081` |  |
 | readinessProbe.initialDelaySeconds | int | `5` |  |

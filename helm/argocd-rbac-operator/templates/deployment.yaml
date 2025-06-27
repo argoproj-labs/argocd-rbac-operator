@@ -42,6 +42,10 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       terminationGracePeriodSeconds: 10
       serviceAccountName: {{ include "argocd-rbac-operator.serviceAccountName" . }}
       containers:
