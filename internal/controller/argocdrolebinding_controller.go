@@ -117,7 +117,7 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		if err := r.Get(ctx, typeNamespacedNameRole, &role); err != nil {
 			if errors.IsNotFound(err) {
 				r.Log.Info("ArgoCDRole %s not found.", roleName)
-				return ctrl.Result{}, nil
+				return ctrl.Result{RequeueAfter: time.Second}, nil
 			}
 			rb.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 			if err := r.Client.Status().Update(ctx, &rb); err != nil {
