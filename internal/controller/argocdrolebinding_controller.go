@@ -53,17 +53,17 @@ type ArgoCDRoleBindingReconciler struct {
 func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("argocdrole", req.NamespacedName)
 
-	r.Log.Info("Reconciling ArgoCDRoleBinding %s", req.Name)
+	r.Log.Info("Reconciling ArgoCDRoleBinding", "name", req.Name)
 
 	var rb rbacoperatorv1alpha1.ArgoCDRoleBinding
 	if err := r.Get(ctx, req.NamespacedName, &rb); err != nil {
 		if errors.IsNotFound(err) {
-			r.Log.Info("ArgoCDRoleBinding %s not found.", req.Name)
+			r.Log.Info("ArgoCDRoleBinding not found.", "name", req.Name)
 			return ctrl.Result{}, nil
 		}
 		rb.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 		if err := r.Client.Status().Update(ctx, &rb); err != nil {
-			r.Log.Error(err, "Failed to update ArgoCDRoleBinding %s status", req.Name)
+			r.Log.Error(err, "Failed to update ArgoCDRoleBinding status", "name", req.Name)
 		}
 		return ctrl.Result{}, err
 	}
@@ -71,12 +71,12 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	if rb.IsBeingDeleted() {
 		if err := r.handleFinalizer(ctx, &rb); err != nil {
 			if errors.IsConflict(err) {
-				r.Log.Info("Conflict while handling finalizer, requeuing ArgoCDRoleBinding %s", req.Name)
+				r.Log.Info("Conflict while handling finalizer, requeuing ArgoCDRoleBinding", "name", req.Name)
 				return ctrl.Result{RequeueAfter: time.Second}, nil
 			}
 			rb.SetConditions(rbacoperatorv1alpha1.Deleting().WithMessage(err.Error()))
 			if err := r.Client.Status().Update(ctx, &rb); err != nil {
-				r.Log.Error(err, "Failed to update ArgoCDRoleBinding %s status", req.Name)
+				r.Log.Error(err, "Failed to update ArgoCDRoleBinding status", "name", req.Name)
 			}
 			return ctrl.Result{}, fmt.Errorf("error when handling finalizer: %v", err)
 		}
@@ -87,7 +87,7 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		if err := r.addFinalizer(ctx, &rb); err != nil {
 			rb.SetConditions(rbacoperatorv1alpha1.Deleting().WithMessage(err.Error()))
 			if err := r.Client.Status().Update(ctx, &rb); err != nil {
-				r.Log.Error(err, "Failed to update ArgoCDRoleBinding %s status", req.Name)
+				r.Log.Error(err, "Failed to update ArgoCDRoleBinding status", "name", req.Name)
 			}
 			return ctrl.Result{}, fmt.Errorf("error when adding finalizer: %v", err)
 		}
@@ -100,7 +100,7 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	if !IsObjectFound(r.Client, cm.Namespace, cm.Name, cm) {
 		rb.SetConditions(rbacoperatorv1alpha1.Pending(fmt.Errorf("ConfigMap %s not found", cm.Name)))
 		if err := r.Client.Status().Update(ctx, &rb); err != nil {
-			r.Log.Error(err, "Failed to update ArgoCDRoleBinding %s status", req.Name)
+			r.Log.Error(err, "Failed to update ArgoCDRoleBinding status", "name", req.Name)
 		}
 		return ctrl.Result{Requeue: true, RequeueAfter: time.Second}, fmt.Errorf("ConfigMap not found")
 	}
@@ -116,12 +116,12 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 		if err := r.Get(ctx, typeNamespacedNameRole, &role); err != nil {
 			if errors.IsNotFound(err) {
-				r.Log.Info("ArgoCDRole %s not found.", roleName)
+				r.Log.Info("ArgoCDRole not found.", "name", roleName)
 				return ctrl.Result{RequeueAfter: time.Second}, nil
 			}
 			rb.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 			if err := r.Client.Status().Update(ctx, &rb); err != nil {
-				r.Log.Error(err, "Failed to update ArgoCDRoleBinding %s status", req.Name)
+				r.Log.Error(err, "Failed to update ArgoCDRoleBinding status", "name", req.Name)
 			}
 			return ctrl.Result{}, err
 		}
@@ -130,7 +130,7 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		if err := r.reconcileRBACConfigMap(cm, &rb, &role); err != nil {
 			rb.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 			if err := r.Client.Status().Update(ctx, &rb); err != nil {
-				r.Log.Error(err, "Failed to update ArgoCDRoleBinding %s status", req.Name)
+				r.Log.Error(err, "Failed to update ArgoCDRoleBinding status", "name", req.Name)
 			}
 			return ctrl.Result{Requeue: true, RequeueAfter: time.Second}, err
 		}
@@ -138,13 +138,13 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		if !role.HasArgoCDRoleBindingRef() {
 			role.SetArgoCDRoleBindingRef(rb.Name)
 			if err := r.Client.Status().Update(ctx, &role); err != nil {
-				r.Log.Error(err, "Failed to update ArgoCDRole %s status", role.Name)
+				r.Log.Error(err, "Failed to update ArgoCDRole status", "name", role.Name)
 			}
 		}
 
 		rb.SetConditions(rbacoperatorv1alpha1.ReconcileSuccess().WithObservedGeneration(rb.GetGeneration()))
 		if err := r.Client.Status().Update(ctx, &rb); err != nil {
-			r.Log.Error(err, "Failed to update ArgoCDRoleBinding %s status", req.Name)
+			r.Log.Error(err, "Failed to update ArgoCDRoleBinding status", "name", req.Name)
 		}
 		return ctrl.Result{RequeueAfter: time.Minute * 10}, nil
 
@@ -162,19 +162,19 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	r.Log.Info("Reconciling RBAC ConfigMap")
 	if err := r.reconcileRBACConfigMapForBuiltInRole(cm, &rb, role); err != nil {
 		if errors.IsConflict(err) {
-			r.Log.Info("Conflict while reconciling RBAC ConfigMap, requeuing ArgoCDRoleBinding %s", req.Name)
+			r.Log.Info("Conflict while reconciling RBAC ConfigMap, requeuing ArgoCDRoleBinding", "name", req.Name)
 			return ctrl.Result{RequeueAfter: time.Second}, nil
 		}
 		rb.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 		if err := r.Client.Status().Update(ctx, &rb); err != nil {
-			r.Log.Error(err, "Failed to update ArgoCDRoleBinding %s status", req.Name)
+			r.Log.Error(err, "Failed to update ArgoCDRoleBinding status", "name", req.Name)
 		}
 		return ctrl.Result{Requeue: true, RequeueAfter: time.Second}, err
 	}
 
 	rb.SetConditions(rbacoperatorv1alpha1.ReconcileSuccess().WithObservedGeneration(rb.GetGeneration()))
 	if err := r.Client.Status().Update(ctx, &rb); err != nil {
-		r.Log.Error(err, "Failed to update ArgoCDRoleBinding %s status", req.Name)
+		r.Log.Error(err, "Failed to update ArgoCDRoleBinding status", "name", req.Name)
 	}
 	return ctrl.Result{RequeueAfter: time.Minute * 10}, nil
 }

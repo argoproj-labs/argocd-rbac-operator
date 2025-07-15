@@ -135,6 +135,7 @@ func main() {
 		Scheme:                       mgr.GetScheme(),
 		ArgoCDRBACConfigMapName:      argoCDRBACConfigMapName,
 		ArgoCDRBACConfigMapNamespace: argoCDRBACConfigMapNamespace,
+		Log:                          ctrl.Log.WithName("controllers").WithName("ArgoCDRole"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Role")
 		os.Exit(1)
@@ -144,12 +145,14 @@ func main() {
 		Scheme:                       mgr.GetScheme(),
 		ArgoCDRBACConfigMapName:      argoCDRBACConfigMapName,
 		ArgoCDRBACConfigMapNamespace: argoCDRBACConfigMapNamespace,
+		Log:                          ctrl.Log.WithName("controllers").WithName("ArgoCDRoleBinding"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ArgoCDRoleBinding")
 		os.Exit(1)
 	}
 	if err := (&controller.ArgoCDProjectRoleReconciler{
 		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("ArgoCDProjectRole"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ArgoCDProjectRole")
@@ -158,6 +161,7 @@ func main() {
 	if err := (&controller.ArgoCDProjectRoleBindingReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
+		Log:    ctrl.Log.WithName("controllers").WithName("ArgoCDProjectRoleBinding"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ArgoCDProjectRoleBinding")
 		os.Exit(1)
