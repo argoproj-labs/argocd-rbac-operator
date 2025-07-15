@@ -3,7 +3,7 @@ appVersion: v0.2.1
 name: argocd-rbac-operator
 description: A Helm chart for Argo CD RBAC Operator, a Kubernetes Operator for Argo CD RBAC Management.
 type: application
-version: 0.4.1
+version: 0.4.2
 keywords:
   - argocd
   - operator

@@ -75,3 +75,5 @@ readinessProbe:
   periodSeconds: 10
 
 nodeSelector: {}
+
+tolerations: []

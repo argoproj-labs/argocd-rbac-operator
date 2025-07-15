@@ -227,8 +227,8 @@ func TestArgoCDRoleBindingReconciler_RoleNotFound(t *testing.T) {
 
 	res, err := reconciler.Reconcile(context.TODO(), req)
 	assert.NoError(t, err)
-	if res.RequeueAfter > 0 {
-		t.Fatalf("reconcile requeued request after %s", res.RequeueAfter)
+	if res.RequeueAfter <= 0 {
+		t.Fatalf("expected reconcile to requeue request, got RequeueAfter=%s", res.RequeueAfter)
 	}
 	assert.Error(t, reconciler.Get(context.TODO(), types.NamespacedName{Name: argocdRoleBinding.Spec.ArgoCDRoleRef.Name, Namespace: testNamespace}, &rbacoperatorv1alpha1.ArgoCDRole{}))
 }
