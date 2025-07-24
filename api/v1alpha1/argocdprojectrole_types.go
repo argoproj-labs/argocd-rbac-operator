@@ -31,7 +31,7 @@ type ArgoCDProjectRoleSpec struct {
 
 // Rules define the desired set of permissions.
 type ProjectRule struct {
-	// +kubebuilder:validation:Enum=clusters;applications;repositories;logs;exec;projects
+	// +kubebuilder:validation:Enum=clusters;applications;applicationsets;repositories;logs;exec;projects
 	// +kubebuilder:validation:example=applications
 	// Target resource type.
 	Resource string `json:"resource"`
