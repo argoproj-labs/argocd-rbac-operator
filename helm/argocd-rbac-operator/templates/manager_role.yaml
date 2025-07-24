@@ -20,6 +20,7 @@ rules:
   - get
   - list
   - patch
+  - watch
 - apiGroups:
   - rbac-operator.argoproj-labs.io
   resources:
