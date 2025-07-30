@@ -58,6 +58,7 @@ spec:
                       enum:
                       - clusters
                       - applications
+                      - applicationsets
                       - repositories
                       - logs
                       - exec
