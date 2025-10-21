@@ -70,7 +70,9 @@ tasks:
     desc: Generate code
     deps:
       - controller-gen
-    cmd: '{{ .CONTROLLER_GEN }} object:headerFile="hack/boilerplate.go.txt" paths="./..."'
+    cmds: 
+      - '{{ .CONTROLLER_GEN }} object:headerFile="hack/boilerplate.go.txt" paths="./..."'
+      - cp -r config/crd/bases/ helm/argocd-rbac-operator/crds
 
   fmt:
     desc: Format code

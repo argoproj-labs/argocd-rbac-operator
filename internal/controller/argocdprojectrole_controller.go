@@ -60,7 +60,7 @@ func (r *ArgoCDProjectRoleReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		if err := r.Status().Update(ctx, &projectRole); err != nil {
 			r.Log.Error(err, "Failed to update ArgoCDProjectRole status", "name", req.Name)
 		}
-		return ctrl.Result{RequeueAfter: time.Minute * 2}, err
+		return ctrl.Result{}, err
 	}
 
 	if projectRole.IsBeingDeleted() {
@@ -69,7 +69,7 @@ func (r *ArgoCDProjectRoleReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			if err := r.Status().Update(ctx, &projectRole); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDProjectRole status during finalizer handling", "name", req.Name)
 			}
-			return ctrl.Result{RequeueAfter: time.Minute * 2}, fmt.Errorf("error when handling finalizer: %v", err)
+			return ctrl.Result{}, fmt.Errorf("error when handling finalizer: %v", err)
 		}
 		return ctrl.Result{}, nil
 	}
@@ -80,7 +80,7 @@ func (r *ArgoCDProjectRoleReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			if err := r.Status().Update(ctx, &projectRole); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDProjectRole status after adding finalizer", "name", req.Name)
 			}
-			return ctrl.Result{RequeueAfter: time.Minute * 2}, fmt.Errorf("error when adding finalizer: %v", err)
+			return ctrl.Result{}, fmt.Errorf("error when adding finalizer: %v", err)
 		}
 		return ctrl.Result{RequeueAfter: time.Second}, nil
 	}
@@ -107,7 +107,7 @@ func (r *ArgoCDProjectRoleReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			if err := r.Status().Update(ctx, &projectRole); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDProjectRole status", "name", req.Name)
 			}
-			return ctrl.Result{RequeueAfter: time.Minute * 2}, fmt.Errorf("error fetching ArgoCDProjectRoleBinding: %v", err)
+			return ctrl.Result{}, fmt.Errorf("error fetching ArgoCDProjectRoleBinding: %v", err)
 		}
 	}
 	return ctrl.Result{RequeueAfter: time.Minute * 5}, nil
