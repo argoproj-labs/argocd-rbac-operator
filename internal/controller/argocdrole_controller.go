@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/util/retry"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -126,10 +127,19 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 
 		r.Log.Info("Reconciling RBAC ConfigMap")
-		if err := r.reconcileRBACConfigMapWithRoleBinding(cm, &role, &rb); err != nil {
+		err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			// Fetch the latest version of the ConfigMap
+			cm := newConfigMap(r.ArgoCDRBACConfigMapName, r.ArgoCDRBACConfigMapNamespace)
+			if err := r.Get(ctx, client.ObjectKeyFromObject(cm), cm); err != nil {
+				return err
+			}
+			return r.reconcileRBACConfigMapWithRoleBinding(cm, &role, &rb)
+		})
+
+		if err != nil {
 			role.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
-			if err := r.Client.Status().Update(ctx, &role); err != nil {
-				r.Log.Error(err, "Failed to update ArgoCDRole status", "name", req.Name)
+			if updateErr := r.Client.Status().Update(ctx, &role); updateErr != nil {
+				r.Log.Error(updateErr, "Failed to update ArgoCDRole status", "name", req.Name)
 			}
 			return ctrl.Result{}, err
 		}
@@ -142,14 +152,20 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	r.Log.Info("Reconciling RBAC ConfigMap")
-	if err := r.reconcileRBACConfigMap(cm, &role); err != nil {
-		if errors.IsConflict(err) {
-			r.Log.Info("Conflict while reconciling RBAC ConfigMap, requeuing ArgoCDRole", "name", req.Name)
-			return ctrl.Result{RequeueAfter: time.Second}, nil
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		// Fetch the latest version of the ConfigMap
+		cm := newConfigMap(r.ArgoCDRBACConfigMapName, r.ArgoCDRBACConfigMapNamespace)
+		if err := r.Get(ctx, client.ObjectKeyFromObject(cm), cm); err != nil {
+			return err
 		}
+
+		return r.reconcileRBACConfigMap(cm, &role)
+	})
+
+	if err != nil {
 		role.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
-		if err := r.Client.Status().Update(ctx, &role); err != nil {
-			r.Log.Error(err, "Failed to update ArgoCDRole status", "name", req.Name)
+		if updateErr := r.Client.Status().Update(ctx, &role); updateErr != nil {
+			r.Log.Error(updateErr, "Failed to update ArgoCDRole status", "name", req.Name)
 		}
 		return ctrl.Result{}, err
 	}

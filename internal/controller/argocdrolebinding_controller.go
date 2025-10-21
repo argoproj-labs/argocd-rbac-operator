@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/util/retry"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -127,10 +128,18 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 
 		r.Log.Info("Reconciling RBAC ConfigMap")
-		if err := r.reconcileRBACConfigMap(cm, &rb, &role); err != nil {
-			rb.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
-			if err := r.Client.Status().Update(ctx, &rb); err != nil {
-				r.Log.Error(err, "Failed to update ArgoCDRoleBinding status", "name", req.Name)
+		err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			cm := newConfigMap(r.ArgoCDRBACConfigMapName, r.ArgoCDRBACConfigMapNamespace)
+			if err := r.Get(ctx, client.ObjectKeyFromObject(cm), cm); err != nil {
+				return err
+			}
+			return r.reconcileRBACConfigMap(cm, &rb, &role)
+		})
+
+		if err != nil {
+			role.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
+			if updateErr := r.Client.Status().Update(ctx, &rb); updateErr != nil {
+				r.Log.Error(updateErr, "Failed to update ArgoCDRoleBinding status", "name", req.Name)
 			}
 			return ctrl.Result{}, err
 		}
@@ -160,14 +169,18 @@ func (r *ArgoCDRoleBindingReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	r.Log.Info("Reconciling RBAC ConfigMap")
-	if err := r.reconcileRBACConfigMapForBuiltInRole(cm, &rb, role); err != nil {
-		if errors.IsConflict(err) {
-			r.Log.Info("Conflict while reconciling RBAC ConfigMap, requeuing ArgoCDRoleBinding", "name", req.Name)
-			return ctrl.Result{RequeueAfter: time.Second}, nil
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		cm := newConfigMap(r.ArgoCDRBACConfigMapName, r.ArgoCDRBACConfigMapNamespace)
+		if err := r.Get(ctx, client.ObjectKeyFromObject(cm), cm); err != nil {
+			return err
 		}
-		rb.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
-		if err := r.Client.Status().Update(ctx, &rb); err != nil {
-			r.Log.Error(err, "Failed to update ArgoCDRoleBinding status", "name", req.Name)
+		return r.reconcileRBACConfigMapForBuiltInRole(cm, &rb, role)
+	})
+
+	if err != nil {
+		role.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
+		if updateErr := r.Client.Status().Update(ctx, &rb); updateErr != nil {
+			r.Log.Error(updateErr, "Failed to update ArgoCDRoleBinding status", "name", req.Name)
 		}
 		return ctrl.Result{}, err
 	}
