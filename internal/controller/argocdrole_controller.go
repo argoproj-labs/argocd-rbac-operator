@@ -104,7 +104,7 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		if err := r.Client.Status().Update(ctx, &role); err != nil {
 			r.Log.Error(err, "Failed to update ArgoCDRole status", "name", req.Name)
 		}
-		return ctrl.Result{Requeue: true, RequeueAfter: time.Second}, fmt.Errorf("ConfigMap not found")
+		return ctrl.Result{}, fmt.Errorf("ConfigMap not found")
 	}
 
 	if role.HasArgoCDRoleBindingRef() {
@@ -131,7 +131,7 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			if err := r.Client.Status().Update(ctx, &role); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDRole status", "name", req.Name)
 			}
-			return ctrl.Result{Requeue: true, RequeueAfter: time.Second}, err
+			return ctrl.Result{}, err
 		}
 
 		role.SetConditions(rbacoperatorv1alpha1.ReconcileSuccess().WithObservedGeneration(role.GetGeneration()))
@@ -151,7 +151,7 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		if err := r.Client.Status().Update(ctx, &role); err != nil {
 			r.Log.Error(err, "Failed to update ArgoCDRole status", "name", req.Name)
 		}
-		return ctrl.Result{Requeue: true, RequeueAfter: time.Second}, err
+		return ctrl.Result{}, err
 	}
 
 	role.SetConditions(rbacoperatorv1alpha1.ReconcileSuccess().WithObservedGeneration(role.GetGeneration()))

@@ -150,7 +150,8 @@ func TestArgoCDRoleReconciler_CMNotFound(t *testing.T) {
 
 	res, err := reconciler.Reconcile(context.TODO(), req)
 	assert.Error(t, err)
-	assert.True(t, res.RequeueAfter > 0, "expected requeue after to be greater than 0")
+	assert.False(t, res.Requeue, "requeue should be false when error is returned")
+	assert.Equal(t, time.Duration(0), res.RequeueAfter, "requeue after should be 0 when error is returned")
 }
 
 func TestArgoCDRoleReconciler_HandleFinalizer(t *testing.T) {

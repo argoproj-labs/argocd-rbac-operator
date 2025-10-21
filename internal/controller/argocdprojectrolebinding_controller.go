@@ -61,7 +61,7 @@ func (r *ArgoCDProjectRoleBindingReconciler) Reconcile(ctx context.Context, req 
 		projectRoleBinding.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
 		if err := r.Status().Update(ctx, &projectRoleBinding); err != nil {
 			r.Log.Error(err, "Failed to update ArgoCDProjectRoleBinding status", "name", req.Name)
-			return ctrl.Result{RequeueAfter: time.Minute * 2}, err
+			return ctrl.Result{}, err
 		}
 	}
 
@@ -71,7 +71,7 @@ func (r *ArgoCDProjectRoleBindingReconciler) Reconcile(ctx context.Context, req 
 			if err := r.Status().Update(ctx, &projectRoleBinding); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDProjectRoleBinding status during finalizer handling", "name", req.Name)
 			}
-			return ctrl.Result{RequeueAfter: time.Minute * 2}, fmt.Errorf("error when handling finalizer: %v", err)
+			return ctrl.Result{}, fmt.Errorf("error when handling finalizer: %v", err)
 		}
 		return ctrl.Result{}, nil
 	}
@@ -82,7 +82,7 @@ func (r *ArgoCDProjectRoleBindingReconciler) Reconcile(ctx context.Context, req 
 			if err := r.Status().Update(ctx, &projectRoleBinding); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDProjectRoleBinding status after adding finalizer", "name", req.Name)
 			}
-			return ctrl.Result{RequeueAfter: time.Minute * 2}, fmt.Errorf("error when adding finalizer: %v", err)
+			return ctrl.Result{}, fmt.Errorf("error when adding finalizer: %v", err)
 		}
 		return ctrl.Result{RequeueAfter: time.Second}, nil
 	}
@@ -106,7 +106,7 @@ func (r *ArgoCDProjectRoleBindingReconciler) Reconcile(ctx context.Context, req 
 		if err := r.Status().Update(ctx, &projectRoleBinding); err != nil {
 			r.Log.Error(err, "Failed to update ArgoCDProjectRoleBinding status after project role not found", "name", req.Name)
 		}
-		return ctrl.Result{RequeueAfter: time.Minute * 2}, fmt.Errorf("error when getting ArgoCDProjectRole: %v", err)
+		return ctrl.Result{}, fmt.Errorf("error when getting ArgoCDProjectRole: %v", err)
 	}
 
 	if !projectRole.HasArgoCDProjectRoleBindingRef() {
@@ -132,7 +132,7 @@ func (r *ArgoCDProjectRoleBindingReconciler) Reconcile(ctx context.Context, req 
 				}
 				r.Log.Error(err, "Failed to remove role from AppProject", "appProject", boundAppProject, "role", projectRoleName)
 				projectRoleBinding.SetConditions(rbacoperatorv1alpha1.ReconcileError(err))
-				return ctrl.Result{RequeueAfter: time.Second}, fmt.Errorf("error when removing role from AppProject: %v", err)
+				return ctrl.Result{}, fmt.Errorf("error when removing role from AppProject: %v", err)
 			}
 			r.Log.Info("Role removed from AppProject", "appProject", boundAppProject, "role", projectRoleName)
 			projectRoleBinding.Status.AppProjectsBound = removeStringFromSlice(projectRoleBinding.Status.AppProjectsBound, boundAppProject)
@@ -163,7 +163,7 @@ func (r *ArgoCDProjectRoleBindingReconciler) Reconcile(ctx context.Context, req 
 			if err := r.Status().Update(ctx, &projectRoleBinding); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDProjectRoleBinding status after patching AppProject", "name", req.Name)
 			}
-			return ctrl.Result{RequeueAfter: time.Second}, fmt.Errorf("error when patching AppProject: %v", err)
+			return ctrl.Result{}, fmt.Errorf("error when patching AppProject: %v", err)
 		}
 		r.Log.Info("AppProject patched successfully", "appProject", appProjectRef)
 		if !isAppProjectInStatus(projectRoleBinding.Status.AppProjectsBound, appProjectRef) {
@@ -171,7 +171,7 @@ func (r *ArgoCDProjectRoleBindingReconciler) Reconcile(ctx context.Context, req 
 			r.Log.Info("AppProject added to status", "appProject", appProjectRef)
 			if err := r.Status().Update(ctx, &projectRoleBinding); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDProjectRoleBinding status after patching AppProject", "name", req.Name)
-				return ctrl.Result{RequeueAfter: time.Second}, fmt.Errorf("error when updating status: %v", err)
+				return ctrl.Result{}, fmt.Errorf("error when updating status: %v", err)
 			}
 		}
 	}
