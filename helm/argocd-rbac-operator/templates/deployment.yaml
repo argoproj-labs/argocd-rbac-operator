@@ -12,7 +12,7 @@ spec:
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/default-container: rbac-operator
+        kubectl.kubernetes.io/default-container: {{ .Chart.Name }}
       labels:
       {{- include "argocd-rbac-operator.labels" . | nindent 8 }}
     spec:
