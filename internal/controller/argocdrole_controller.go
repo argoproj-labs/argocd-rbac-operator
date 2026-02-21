@@ -100,7 +100,7 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	cm := newConfigMap(r.ArgoCDRBACConfigMapName, r.ArgoCDRBACConfigMapNamespace)
 
 	r.Log.Info("Checking if ConfigMap exists")
-	if !IsObjectFound(r.Client, cm.Namespace, cm.Name, cm) {
+	if !IsObjectFound(ctx, r.Client, cm.Namespace, cm.Name, cm) {
 		role.SetConditions(rbacoperatorv1alpha1.Pending(fmt.Errorf("ConfigMap %s not found", cm.Name)))
 		if err := r.Client.Status().Update(ctx, &role); err != nil {
 			r.Log.Error(err, "Failed to update ArgoCDRole status", "name", req.Name)
@@ -133,7 +133,7 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			if err := r.Get(ctx, client.ObjectKeyFromObject(cm), cm); err != nil {
 				return err
 			}
-			return r.reconcileRBACConfigMapWithRoleBinding(cm, &role, &rb)
+			return r.reconcileRBACConfigMapWithRoleBinding(ctx, cm, &role, &rb)
 		})
 
 		if err != nil {
@@ -159,7 +159,7 @@ func (r *ArgoCDRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			return err
 		}
 
-		return r.reconcileRBACConfigMap(cm, &role)
+		return r.reconcileRBACConfigMap(ctx, cm, &role)
 	})
 
 	if err != nil {

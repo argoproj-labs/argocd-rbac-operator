@@ -88,7 +88,7 @@ func newConfigMap(name, namespace string) *corev1.ConfigMap {
 }
 
 // reconcileRBACConfigMap will ensure that the ArgoCD RBAC ConfigMap is up-to-date.
-func (r *ArgoCDRoleReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMap, role *rbacoperatorv1alpha1.ArgoCDRole) error {
+func (r *ArgoCDRoleReconciler) reconcileRBACConfigMap(ctx context.Context, cm *corev1.ConfigMap, role *rbacoperatorv1alpha1.ArgoCDRole) error {
 	changed := false
 	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
 	roleName := fmt.Sprintf("role:%s", role.Name)
@@ -109,13 +109,13 @@ func (r *ArgoCDRoleReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMap, role
 	}
 
 	if changed {
-		return r.Update(context.TODO(), cm)
+		return r.Update(ctx, cm)
 	}
 	return nil
 }
 
 // reconcileRBACConfigMapWithRoleBinding will ensure that the ArgoCD RBAC ConfigMap is up-to-date.
-func (r *ArgoCDRoleReconciler) reconcileRBACConfigMapWithRoleBinding(cm *corev1.ConfigMap, role *rbacoperatorv1alpha1.ArgoCDRole, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding) error {
+func (r *ArgoCDRoleReconciler) reconcileRBACConfigMapWithRoleBinding(ctx context.Context, cm *corev1.ConfigMap, role *rbacoperatorv1alpha1.ArgoCDRole, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding) error {
 	changed := false
 	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
 
@@ -135,13 +135,13 @@ func (r *ArgoCDRoleReconciler) reconcileRBACConfigMapWithRoleBinding(cm *corev1.
 	}
 
 	if changed {
-		return r.Update(context.TODO(), cm)
+		return r.Update(ctx, cm)
 	}
 	return nil
 }
 
 // reconcileRBACConfigMap will ensure that the ArgoCD RBAC ConfigMap is up-to-date.
-func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMap, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role *rbacoperatorv1alpha1.ArgoCDRole) error {
+func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMap(ctx context.Context, cm *corev1.ConfigMap, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role *rbacoperatorv1alpha1.ArgoCDRole) error {
 	changed := false
 	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
 
@@ -161,13 +161,13 @@ func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMap(cm *corev1.ConfigMa
 	}
 
 	if changed {
-		return r.Update(context.TODO(), cm)
+		return r.Update(ctx, cm)
 	}
 	return nil
 }
 
 // reconcileRBACConfigMap will ensure that the ArgoCD RBAC ConfigMap is up-to-date.
-func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMapForBuiltInRole(cm *corev1.ConfigMap, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role *rbacoperatorv1alpha1.ArgoCDRole) error {
+func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMapForBuiltInRole(ctx context.Context, cm *corev1.ConfigMap, rb *rbacoperatorv1alpha1.ArgoCDRoleBinding, role *rbacoperatorv1alpha1.ArgoCDRole) error {
 	changed := false
 	overlayKey := fmt.Sprintf("policy.%s.%s.csv", role.Namespace, role.Name)
 
@@ -187,21 +187,21 @@ func (r *ArgoCDRoleBindingReconciler) reconcileRBACConfigMapForBuiltInRole(cm *c
 	}
 
 	if changed {
-		return r.Update(context.TODO(), cm)
+		return r.Update(ctx, cm)
 	}
 	return nil
 }
 
 // IsObjectFound will perform a basic check that the given object exists via the Kubernetes API.
 // If an error occurs as part of the check, the function will return false.
-func IsObjectFound(client client.Client, namespace string, name string, obj client.Object) bool {
-	return !apierrors.IsNotFound(FetchObject(client, namespace, name, obj))
+func IsObjectFound(ctx context.Context, client client.Client, namespace string, name string, obj client.Object) bool {
+	return !apierrors.IsNotFound(FetchObject(ctx, client, namespace, name, obj))
 }
 
 // FetchObject will retrieve the object with the given namespace and name using the Kubernetes API.
 // The result will be stored in the given object.
-func FetchObject(client client.Client, namespace string, name string, obj client.Object) error {
-	return client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, obj)
+func FetchObject(ctx context.Context, client client.Client, namespace string, name string, obj client.Object) error {
+	return client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, obj)
 }
 
 // createBuiltInAdminRole will return a new built-in ArgoCDRole with admin permissions.
