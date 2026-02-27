@@ -31,6 +31,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+    "sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 )
 
 var _ reconcile.Reconciler = &ArgoCDProjectRoleBindingReconciler{}
@@ -239,4 +242,33 @@ func TestArgoCDProjectRoleBindingReconciler_BoundAppProjectNotInSpec(t *testing.
 	assert.NoError(t, err)
 	wantAppProject := makeTestAppProject(setAppProjectName("another-app-project"))
 	assert.Equal(t, wantAppProject.Spec.Roles, appProject.Spec.Roles)
+}
+
+func TestArgoCDProjectRoleBindingReconciler_GetTransientError(t *testing.T) {
+    logf.SetLogger(ZapLogger(true))
+
+    scheme := makeTestReconcilerScheme(rbacoperatorv1alpha1.AddToScheme)
+    
+    fakeClient := fake.NewClientBuilder().
+        WithScheme(scheme).
+        WithInterceptorFuncs(interceptor.Funcs{
+            Get: func(ctx context.Context, c client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
+                return fmt.Errorf("simulated transient API error")
+            },
+        }).
+        Build()
+    
+    reconciler := makeTestArgoCDProjectRoleBindingReconciler(fakeClient, scheme)
+
+    req := reconcile.Request{
+        NamespacedName: types.NamespacedName{
+            Name:      testProjectRoleBindingName,
+            Namespace: testNamespace,
+        },
+    }
+
+    res, err := reconciler.Reconcile(context.TODO(), req)
+
+    assert.Error(t, err)
+    assert.Equal(t, reconcile.Result{}, res)
 }
