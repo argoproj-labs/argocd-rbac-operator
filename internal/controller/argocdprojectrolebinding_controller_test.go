@@ -267,8 +267,8 @@ func TestArgoCDProjectRoleBindingReconciler_GetTransientError(t *testing.T) {
         },
     }
 
-    result, err := reconciler.Reconcile(context.TODO(), req)
+    res, err := reconciler.Reconcile(context.TODO(), req)
 
     assert.Error(t, err)
-    assert.Equal(t, reconcile.Result{}, result)
+    assert.Equal(t, reconcile.Result{}, res)
 }
