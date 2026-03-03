@@ -63,6 +63,7 @@ func (r *ArgoCDProjectRoleBindingReconciler) Reconcile(ctx context.Context, req 
 			r.Log.Error(err, "Failed to update ArgoCDProjectRoleBinding status", "name", req.Name)
 			return ctrl.Result{}, err
 		}
+		return ctrl.Result{}, err
 	}
 
 	if projectRoleBinding.IsBeingDeleted() {
