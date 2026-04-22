@@ -120,12 +120,12 @@ func (r *ArgoCDProjectRoleBindingReconciler) Reconcile(ctx context.Context, req 
 	for _, boundAppProject := range projectRoleBinding.Status.AppProjectsBound {
 		if _, exists := appProjectSubjectSet[boundAppProject]; !exists {
 			appProject := newAppProject(boundAppProject, req.Namespace)
-			if !IsObjectFound(r.Client, appProject.Namespace, appProject.Name, appProject) {
+			if !IsObjectFound(ctx, r.Client, appProject.Namespace, appProject.Name, appProject) {
 				r.Log.Info("AppProject not found", "name", boundAppProject)
 				continue
 			}
 			r.Log.Info("Removing Role from AppProject", "appProject", boundAppProject, "role", projectRoleName)
-			if err := removeRoleFromAppProject(r.Client, appProject, projectRoleName); err != nil {
+			if err := removeRoleFromAppProject(ctx, r.Client, appProject, projectRoleName); err != nil {
 				if errors.IsConflict(err) {
 					r.Log.Info("Conflict while patching AppProject, requeuing", "appProject", appProject.Name)
 					return ctrl.Result{RequeueAfter: time.Second}, nil
@@ -146,7 +146,7 @@ func (r *ArgoCDProjectRoleBindingReconciler) Reconcile(ctx context.Context, req 
 
 	for appProjectRef, groups := range appProjectSubjectSet {
 		appProject := newAppProject(appProjectRef, req.Namespace)
-		if !IsObjectFound(r.Client, appProject.Namespace, appProject.Name, appProject) {
+		if !IsObjectFound(ctx, r.Client, appProject.Namespace, appProject.Name, appProject) {
 			projectRoleBinding.SetConditions(rbacoperatorv1alpha1.Pending(fmt.Errorf("AppProject %s not found", appProjectRef)))
 			if err := r.Status().Update(ctx, &projectRoleBinding); err != nil {
 				r.Log.Error(err, "Failed to update ArgoCDProjectRoleBinding status", "name", req.Name)
@@ -154,7 +154,7 @@ func (r *ArgoCDProjectRoleBindingReconciler) Reconcile(ctx context.Context, req 
 			continue
 		}
 		r.Log.Info("Reconciling AppProject", "appProject", appProjectRef)
-		if err := r.patchAppProject(appProject, &projectRole, &groups); err != nil {
+		if err := r.patchAppProject(ctx, appProject, &projectRole, &groups); err != nil {
 			if errors.IsConflict(err) {
 				r.Log.Info("Conflict while patching AppProject, requeuing", "appProject", appProjectRef)
 				return ctrl.Result{RequeueAfter: time.Second}, nil
