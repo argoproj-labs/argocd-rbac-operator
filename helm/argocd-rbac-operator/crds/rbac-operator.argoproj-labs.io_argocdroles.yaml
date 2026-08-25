@@ -44,6 +44,14 @@ spec:
                 items:
                   description: Rules define the desired set of permissions.
                   properties:
+                    effect:
+                      default: allow
+                      description: Effect determines whether the rule allows or denies
+                        the specified permissions.
+                      enum:
+                      - allow
+                      - deny
+                      type: string
                     objects:
                       description: List of resource's objects the permissions are
                         granted for.
