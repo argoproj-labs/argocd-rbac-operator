@@ -1,0 +1,17 @@
+apiVersion: rbac-operator.argoproj-labs.io/v1alpha1
+kind: ArgoCDApplicationRole
+metadata:
+  labels:
+    app.kubernetes.io/name: argocd-rbac-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: deployer
+spec:
+  description: Deploy and inspect applications
+  rules:
+  - resource: applications
+    verbs:
+    - get
+    - sync
+  - resource: logs
+    verbs:
+    - get

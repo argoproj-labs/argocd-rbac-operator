@@ -1,0 +1,16 @@
+apiVersion: rbac-operator.argoproj-labs.io/v1alpha1
+kind: ArgoCDApplicationRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/name: argocd-rbac-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: payments-deployers
+spec:
+  argocdApplicationRoleRef:
+    name: deployer
+  appProjectRef:
+    name: test-appproject-1
+  applications:
+  - name: payments-*
+  groups:
+  - team-payments

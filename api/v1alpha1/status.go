@@ -230,6 +230,34 @@ func (rb *ArgoCDProjectRoleBinding) SetConditions(c ...Condition) {
 	}
 }
 
+// SetConditions sets the supplied conditions, replacing any existing conditions
+// of the same type. This is a no-op if all supplied conditions are identical,
+// ignoring the last transition time, to those already set.
+func (rb *ArgoCDApplicationRoleBinding) SetConditions(c ...Condition) {
+	for _, newCondition := range c {
+		exists := false
+		for i, existing := range rb.Status.Conditions {
+			if existing.Type != newCondition.Type {
+				continue
+			}
+
+			if existing.Equal(newCondition) {
+				exists = true
+				if rb.Status.Conditions[i].ObservedGeneration < newCondition.ObservedGeneration {
+					rb.Status.Conditions[i].ObservedGeneration = newCondition.ObservedGeneration
+				}
+				continue
+			}
+
+			rb.Status.Conditions[i] = newCondition
+			exists = true
+		}
+		if !exists {
+			rb.Status.Conditions = append(rb.Status.Conditions, newCondition)
+		}
+	}
+}
+
 // Deleting returns a condition that indicates the resource is currently
 // being deleted.
 func Deleting() Condition {

@@ -24,21 +24,32 @@ rules:
 - apiGroups:
   - rbac-operator.argoproj-labs.io
   resources:
-  - argocdprojectrolebindings
-  - argocdprojectroles
-  - argocdrolebindings
-  - argocdroles
-  verbs:
-  - '*'
-- apiGroups:
-  - rbac-operator.argoproj-labs.io
-  resources:
+  - argocdapplicationrolebindings
+  - argocdapplicationrolebindings/finalizers
+  - argocdapplicationrolebindings/status
   - argocdprojectrolebindings/finalizers
   - argocdprojectrolebindings/status
   - argocdprojectroles/finalizers
   - argocdrolebindings/finalizers
   - argocdrolebindings/status
   - argocdroles/finalizers
+  verbs:
+  - '*'
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdapplicationroles
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdprojectrolebindings
+  - argocdprojectroles
+  - argocdrolebindings
+  - argocdroles
   verbs:
   - '*'
 - apiGroups:

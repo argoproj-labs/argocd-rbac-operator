@@ -1,0 +1,87 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.18.0
+  name: argocdapplicationroles.rbac-operator.argoproj-labs.io
+spec:
+  group: rbac-operator.argoproj-labs.io
+  names:
+    kind: ArgoCDApplicationRole
+    listKind: ArgoCDApplicationRoleList
+    plural: argocdapplicationroles
+    singular: argocdapplicationrole
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ArgoCDApplicationRole is the Schema for reusable application-scoped
+          permission sets.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ArgoCDApplicationRoleSpec defines a reusable set of application-scoped
+              permissions.
+            properties:
+              description:
+                description: Description is copied to every generated AppProject role.
+                type: string
+              rules:
+                description: Rules define the permissions granted by this role.
+                items:
+                  description: ApplicationRule defines permissions whose object is
+                    supplied by an ArgoCDApplicationRoleBinding.
+                  properties:
+                    effect:
+                      default: allow
+                      description: Effect controls whether matching requests are allowed
+                        or denied.
+                      enum:
+                      - allow
+                      - deny
+                      type: string
+                    resource:
+                      description: Resource is an Argo CD resource scoped to an application.
+                      enum:
+                      - applications
+                      - logs
+                      - exec
+                      type: string
+                    verbs:
+                      description: Verbs define the operations that may be performed.
+                      items:
+                        minLength: 1
+                        pattern: ^[^,\r\n]+$
+                        type: string
+                      minItems: 1
+                      type: array
+                  required:
+                  - resource
+                  - verbs
+                  type: object
+                minItems: 1
+                type: array
+            required:
+            - rules
+            type: object
+        type: object
+    served: true
+    storage: true

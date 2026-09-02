@@ -1,0 +1,163 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.18.0
+  name: argocdapplicationrolebindings.rbac-operator.argoproj-labs.io
+spec:
+  group: rbac-operator.argoproj-labs.io
+  names:
+    kind: ArgoCDApplicationRoleBinding
+    listKind: ArgoCDApplicationRoleBindingList
+    plural: argocdapplicationrolebindings
+    singular: argocdapplicationrolebinding
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ArgoCDApplicationRoleBinding is the Schema for application-scoped
+          team access.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ArgoCDApplicationRoleBindingSpec binds a reusable role to
+              teams and applications.
+            properties:
+              appProjectRef:
+                description: AppProjectReference references an AppProject in the same
+                  namespace.
+                properties:
+                  name:
+                    minLength: 1
+                    type: string
+                required:
+                - name
+                type: object
+              applications:
+                description: Applications is the list of application names or patterns
+                  to which the role applies.
+                items:
+                  description: ApplicationTarget identifies an application or application
+                    pattern.
+                  properties:
+                    name:
+                      description: Name is an application name or pattern. Commas,
+                        slashes, and newlines are not allowed.
+                      minLength: 1
+                      pattern: ^[^,/\r\n]+$
+                      type: string
+                    namespace:
+                      description: Namespace optionally targets an Application in
+                        Any Namespace.
+                      pattern: ^[^,/\r\n]+$
+                      type: string
+                  required:
+                  - name
+                  type: object
+                minItems: 1
+                type: array
+              argocdApplicationRoleRef:
+                description: ArgoCDApplicationRoleRef references an ArgoCDApplicationRole
+                  in the same namespace.
+                properties:
+                  name:
+                    minLength: 1
+                    type: string
+                required:
+                - name
+                type: object
+              groups:
+                description: Groups is the list of OIDC group claims bound to the
+                  generated AppProject role.
+                items:
+                  minLength: 1
+                  type: string
+                minItems: 1
+                type: array
+            required:
+            - appProjectRef
+            - applications
+            - argocdApplicationRoleRef
+            - groups
+            type: object
+          status:
+            description: ArgoCDApplicationRoleBindingStatus defines the observed binding
+              state.
+            properties:
+              appProjectBound:
+                description: AppProjectBound is the AppProject currently containing
+                  the generated role.
+                type: string
+              conditions:
+                items:
+                  description: A Condition that may apply to a resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        LastTransitionTime is the last time this condition transitioned from one
+                        status to another.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        A Message containing details about this condition's last transition from
+                        one status to another, if any.
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        ObservedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      type: integer
+                    reason:
+                      description: A Reason for this condition's last transition from
+                        one status to another.
+                      type: string
+                    status:
+                      description: Status of this condition; is it currently True,
+                        False, or Unknown?
+                      type: string
+                    type:
+                      description: |-
+                        Type of this condition. At most one of each condition type may apply to
+                        a resource at any point in time.
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              generatedRoleName:
+                description: GeneratedRoleName is the name of the role generated in
+                  the AppProject.
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

@@ -4,4 +4,6 @@ resources:
 - argocdrolebinding.yaml
 - argocdprojectrole.yaml
 - argocdprojectrolebinding.yaml
+- argocdapplicationrole.yaml
+- argocdapplicationrolebinding.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples
