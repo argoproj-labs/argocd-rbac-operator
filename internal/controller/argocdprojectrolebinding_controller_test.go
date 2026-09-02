@@ -240,3 +240,45 @@ func TestArgoCDProjectRoleBindingReconciler_BoundAppProjectNotInSpec(t *testing.
 	wantAppProject := makeTestAppProject(setAppProjectName("another-app-project"))
 	assert.Equal(t, wantAppProject.Spec.Roles, appProject.Spec.Roles)
 }
+
+func TestMakeAppProjectSubjectsSet(t *testing.T) {
+	tests := []struct {
+		name     string
+		subjects []rbacoperatorv1alpha1.AppProjectSubject
+		want     map[string][]string
+	}{
+		{
+			name: "merges groups for the same AppProject",
+			subjects: []rbacoperatorv1alpha1.AppProjectSubject{
+				{AppProjectRef: "project-a", Groups: []string{"team-b", "team-a"}},
+				{AppProjectRef: "project-a", Groups: []string{"team-c"}},
+			},
+			want: map[string][]string{"project-a": {"team-a", "team-b", "team-c"}},
+		},
+		{
+			name: "deduplicates and sorts groups",
+			subjects: []rbacoperatorv1alpha1.AppProjectSubject{
+				{AppProjectRef: "project-a", Groups: []string{"team-c", "team-a", "team-a"}},
+				{AppProjectRef: "project-a", Groups: []string{"team-b", "team-c"}},
+			},
+			want: map[string][]string{"project-a": {"team-a", "team-b", "team-c"}},
+		},
+		{
+			name: "keeps groups separated by AppProject",
+			subjects: []rbacoperatorv1alpha1.AppProjectSubject{
+				{AppProjectRef: "project-b", Groups: []string{"team-d", "team-c"}},
+				{AppProjectRef: "project-a", Groups: []string{"team-b", "team-a"}},
+			},
+			want: map[string][]string{
+				"project-a": {"team-a", "team-b"},
+				"project-b": {"team-c", "team-d"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, makeAppProjectSubjectsSet(tt.subjects))
+		})
+	}
+}
