@@ -188,7 +188,11 @@ func (r *ArgoCDProjectRoleBindingReconciler) Reconcile(ctx context.Context, req 
 func makeAppProjectSubjectsSet(appProjectSubjects []rbacoperatorv1alpha1.AppProjectSubject) map[string][]string {
 	appProjectSubjectSet := make(map[string][]string, len(appProjectSubjects))
 	for _, subject := range appProjectSubjects {
-		appProjectSubjectSet[subject.AppProjectRef] = subject.Groups
+		appProjectSubjectSet[subject.AppProjectRef] = append(appProjectSubjectSet[subject.AppProjectRef], subject.Groups...)
+	}
+	for appProjectRef, groups := range appProjectSubjectSet {
+		slices.Sort(groups)
+		appProjectSubjectSet[appProjectRef] = slices.Compact(groups)
 	}
 	return appProjectSubjectSet
 }
