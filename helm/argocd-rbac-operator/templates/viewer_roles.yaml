@@ -82,3 +82,39 @@ rules:
   - argocdprojectrolebindings/status
   verbs:
   - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels: {{- include "argocd-rbac-operator.labels" . | nindent 4 }}
+  name: argocd-rbac-operator-argocdapplicationrole-viewer-role
+rules:
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdapplicationroles
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels: {{- include "argocd-rbac-operator.labels" . | nindent 4 }}
+  name: argocd-rbac-operator-argocdapplicationrolebinding-viewer-role
+rules:
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdapplicationrolebindings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - rbac-operator.argoproj-labs.io
+  resources:
+  - argocdapplicationrolebindings/status
+  verbs:
+  - get

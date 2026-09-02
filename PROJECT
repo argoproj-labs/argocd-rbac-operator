@@ -43,4 +43,22 @@ resources:
   kind: ArgoCDProjectRoleBinding
   path: github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1
   version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: false
+  domain: argoproj-labs.io
+  group: rbac-operator
+  kind: ArgoCDApplicationRole
+  path: github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: argoproj-labs.io
+  group: rbac-operator
+  kind: ArgoCDApplicationRoleBinding
+  path: github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1
+  version: v1alpha1
 version: "3"

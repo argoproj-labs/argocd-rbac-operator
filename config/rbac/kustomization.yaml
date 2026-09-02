@@ -24,3 +24,9 @@ resources:
 - argocdrolebinding_viewer_role.yaml
 - argocdrole_editor_role.yaml
 - argocdrole_viewer_role.yaml
+- argocdapplicationrole_admin_role.yaml
+- argocdapplicationrole_editor_role.yaml
+- argocdapplicationrole_viewer_role.yaml
+- argocdapplicationrolebinding_admin_role.yaml
+- argocdapplicationrolebinding_editor_role.yaml
+- argocdapplicationrolebinding_viewer_role.yaml

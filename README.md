@@ -162,6 +162,67 @@ To change the policy.csv you have to make changes in the `internal/controller/co
 
 As for now only single Argo CD deployment type is supported. The default Argo CD namespace is defined as `argocd`, to change that you have to provide a flag `--argocd-rbac-cm-namespace="your-argocd-namespace"`.
 
+### Per-application team RBAC
+
+`ArgoCDApplicationRole` defines a reusable permission set for application-scoped Argo CD resources. An `ArgoCDApplicationRoleBinding` assigns that permission set to one or more OIDC groups for selected applications in an AppProject.
+
+Each binding creates its own AppProject role. Teams can therefore reuse the same permission set without receiving access to each other's applications.
+
+```yaml
+apiVersion: rbac-operator.argoproj-labs.io/v1alpha1
+kind: ArgoCDApplicationRole
+metadata:
+  name: deployer
+  namespace: test-ns
+spec:
+  description: Deploy and inspect applications
+  rules:
+  - resource: applications
+    verbs: [get, sync]
+  - resource: logs
+    verbs: [get]
+---
+apiVersion: rbac-operator.argoproj-labs.io/v1alpha1
+kind: ArgoCDApplicationRoleBinding
+metadata:
+  name: payments-deployers
+  namespace: test-ns
+spec:
+  argocdApplicationRoleRef:
+    name: deployer
+  appProjectRef:
+    name: platform
+  applications:
+  - name: payments-*
+  groups:
+  - team-payments
+```
+
+The operator adds an independently managed role to the `platform` AppProject:
+
+```yaml
+spec:
+  roles:
+  - name: application-payments-deployers
+    description: Deploy and inspect applications
+    groups:
+    - team-payments
+    policies:
+    - p, proj:platform:application-payments-deployers, applications, get, platform/payments-*, allow
+    - p, proj:platform:application-payments-deployers, applications, sync, platform/payments-*, allow
+    - p, proj:platform:application-payments-deployers, logs, get, platform/payments-*, allow
+```
+
+Application names may use patterns interpreted by Argo CD's configured RBAC match mode. For an Application in Any Namespace, set both `name` and `namespace` in the application target:
+
+```yaml
+applications:
+- name: payments-*
+  namespace: team-payments
+```
+
+The role, binding, and AppProject must be in the same namespace. Updating the permission set or binding reconciles the generated role; deleting either the role or binding revokes the generated access.
+
 ### AppProject-scoped RBAC
 
 The following example shows a manifest to create a new ArgoCDProjectRole `test-project-role`:
