@@ -25,4 +25,10 @@ const (
 
 	// ArgoCDRoleReadOnly is the built-in Argo CD role for read-only.
 	ArgoCDRoleReadOnly = "readonly"
+
+	// ArgoCDPolicyEffectAllow is the Casbin policy effect that grants a permission.
+	ArgoCDPolicyEffectAllow = "allow"
+
+	// ArgoCDPolicyEffectDeny is the Casbin policy effect that denies a permission.
+	ArgoCDPolicyEffectDeny = "deny"
 )

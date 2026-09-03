@@ -10,15 +10,20 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	rbacoperatorv1alpha1 "github.com/argoproj-labs/argocd-rbac-operator/api/v1alpha1"
+	"github.com/argoproj-labs/argocd-rbac-operator/internal/controller/common"
 )
 
 func buildCasbinPolicyStrings(pr *rbacoperatorv1alpha1.ArgoCDProjectRole, appProject *argocdv1alpha.AppProject) []string {
 	policies := []string{}
 	for _, rule := range pr.Spec.Rules {
 		resource := rule.Resource
+		effect := rule.Effect
+		if effect == "" {
+			effect = common.ArgoCDPolicyEffectAllow
+		}
 		for _, verb := range rule.Verbs {
 			for _, object := range rule.Objects {
-				policy := fmt.Sprintf("p, proj:%s:%s, %s, %s, %s, allow", appProject.Name, pr.Name, resource, verb, object)
+				policy := fmt.Sprintf("p, proj:%s:%s, %s, %s, %s, %s", appProject.Name, pr.Name, resource, verb, object, effect)
 				policies = append(policies, policy)
 			}
 		}

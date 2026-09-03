@@ -50,9 +50,13 @@ func buildPolicyStringRules(role *rbacoperatorv1alpha1.ArgoCDRole, roleName stri
 	policy := ""
 	for _, rule := range role.Spec.Rules {
 		resource := rule.Resource
+		effect := rule.Effect
+		if effect == "" {
+			effect = common.ArgoCDPolicyEffectAllow
+		}
 		for _, verb := range rule.Verbs {
 			for _, object := range rule.Objects {
-				policy += fmt.Sprintf("p, %s, %s, %s, %s, allow\n", roleName, resource, verb, object)
+				policy += fmt.Sprintf("p, %s, %s, %s, %s, %s\n", roleName, resource, verb, object, effect)
 			}
 		}
 	}

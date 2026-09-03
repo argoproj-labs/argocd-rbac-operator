@@ -39,6 +39,10 @@ type ProjectRule struct {
 	Verbs []string `json:"verbs"`
 	// List of resource's objects the permissions are granted for.
 	Objects []string `json:"objects"`
+	// +kubebuilder:validation:Enum=allow;deny
+	// +kubebuilder:default=allow
+	// Effect determines whether the rule allows or denies the specified permissions.
+	Effect string `json:"effect,omitempty"`
 }
 
 // ArgoCDProjectRoleStatus defines the observed state of ArgoCDProjectRole.
