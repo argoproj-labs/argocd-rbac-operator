@@ -78,3 +78,5 @@ readinessProbe:
 nodeSelector: {}
 
 tolerations: []
+
+priorityClassName: ""
